@@ -1,6 +1,11 @@
 package main
 
-// User represents a user in the system.
+import (
+	"database/sql"
+	"fmt"
+	"log"
+)
+
 type User struct {
 	UserID   int
 	Name     string
@@ -16,4 +21,21 @@ func SignUp(user User) error {
 	`, user.Name, user.Email, user.Password, user.UserType)
 
 	return err
+}
+
+func SignIn(email, password string) (*User, error) {
+	var user User
+	err := DB.QueryRow(`
+		SELECT userid, name, email, password, usertype 
+		FROM users 
+		WHERE email = ? AND password = ?
+	`, email, password).Scan(&user.UserID, &user.Name, &user.Email, &user.Password, &user.UserType)
+
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("user not found")
+	} else if err != nil {
+		log.Fatal(err)
+	}
+
+	return &user, nil
 }
