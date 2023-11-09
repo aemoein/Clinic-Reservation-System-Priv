@@ -58,3 +58,12 @@ func CreateTables() {
 
 	fmt.Println("Tables created successfully")
 }
+
+func CloseDB() {
+	err := DB.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Disconnected from the database")
+}
