@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,99 +9,61 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func dbConn() (db *sql.DB) {
-	db, err := sql.Open("mysql", "root:7R26@llg4grb$&@tcp(127.0.0.1:3306)/Clinical_Reservation")
-	if err != nil {
-		panic(err.Error())
-	}
-	return db
+func main() {
+	InitializeDB()
+	defer CloseDB()
+
+	CreateTables()
+
+	r := mux.NewRouter()
+	http.HandleFunc("/signup", SignUpHandler)
+	http.HandleFunc("/signin", SignInHandler)
+
+	http.Handle("/", r)
+	http.ListenAndServe(":8080", nil)
 }
 
-func patientSignup(w http.ResponseWriter, r *http.Request) {
+func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	dateOfBirth := r.FormValue("date_of_birth")
-	gender := r.FormValue("gender")
+	usertype := r.FormValue("usertype")
 
-	db := dbConn()
-	insertUser, err := db.Exec("INSERT INTO users (username, email, password, user_type) VALUES (?, ?, ?, ?)", username, email, password, "patient")
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
-		return
-	}
-	userID, _ := insertUser.LastInsertId()
-
-	_, err = db.Exec("INSERT INTO patients (user_id, full_name, date_of_birth, gender) VALUES (?, ?, ?, ?)", userID, username, dateOfBirth, gender)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Error creating patient", http.StatusInternalServerError)
-		return
+	user := User{
+		Name:     username,
+		Email:    email,
+		Password: password,
+		UserType: usertype,
 	}
 
-	defer db.Close()
+	err := SignUp(user)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error signing up: %v", err)
+		return
+	}
 
 	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "Patient signup successful")
+	fmt.Fprintf(w, "Signup successful")
 }
 
-func doctorSignup(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
-
-	username := r.FormValue("username")
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	specialization := r.FormValue("specialization")
-
-	db := dbConn()
-	insertUser, err := db.Exec("INSERT INTO users (username, email, password, user_type) VALUES (?, ?, ?, ?)", username, email, password, "doctor")
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
-		return
-	}
-	userID, _ := insertUser.LastInsertId()
-
-	_, err = db.Exec("INSERT INTO doctors (user_id, full_name, specialization) VALUES (?, ?, ?, ?)", userID, username, specialization)
-	if err != nil {
-		fmt.Println(err)
-		http.Error(w, "Error creating patient", http.StatusInternalServerError)
-		return
-	}
-
-	defer db.Close()
-
-	w.WriteHeader(http.StatusOK)
-	fmt.Fprintf(w, "doctor signup successful")
-}
-
-func SigninHandler(w http.ResponseWriter, r *http.Request) {
+func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 
-	// Check if the user exists in the database
-	db := dbConn()
-
-	var storedPassword, userType string
-	err := db.QueryRow("SELECT password, user_type FROM users WHERE username = ?", email).Scan(&storedPassword, &userType)
+	user, err := SignIn(email, password)
 	if err != nil {
-		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
-		return
-	}
-
-	// Compare the provided password with the stored password
-	if password != storedPassword {
-		http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error signing in: %v", err)
 		return
 	}
 
 	// Prepare the response
-	response := map[string]string{
+	response := map[string]interface{}{
 		"message":   "Sign in successful",
-		"user_type": userType, // Include user type in the response
+		"user_type": user.UserType,
 	}
 
 	// Serialize the response to JSON
@@ -116,15 +77,6 @@ func SigninHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
-}
-
-func main() {
-	r := mux.NewRouter()
-	r.HandleFunc("/signup/patient", patientSignup).Methods("POST")
-	r.HandleFunc("/signup/doctor", doctorSignup).Methods("POST")
-
-	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
 }
 
 /*
