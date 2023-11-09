@@ -127,7 +127,8 @@ func main() {
 	http.ListenAndServe(":8080", nil)
 }
 
-/*package main
+/*
+package main
 
 import (
 	"database/sql"
@@ -143,7 +144,7 @@ func main() {
 	}
 	defer db.Close()
 
-	insertUser, err := db.Exec("INSERT INTO users (username, email, password, user_type) VALUES (?, ?, ?, ?)", "Ahmed Elsayed", "aemoein@gmail.com", "12345@qwerty", "patient")
+	insertUser, err := db.Exec("INSERT INTO users (username, email, password, user_type) VALUES (?, ?, ?, ?)", "Ahmed Elsayed", "ahmed33elsayed22@gmail.com", "12345", "patient")
 	if err != nil {
 		panic(err.Error())
 	}
@@ -155,4 +156,5 @@ func main() {
 		panic(err.Error())
 	}
 
-	fmt.Println("User added to both users and patients tables successfully!")*/
+	fmt.Println("User added to both users and patients tables successfully!")
+}*/
