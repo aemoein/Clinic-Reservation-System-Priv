@@ -58,3 +58,33 @@ func UpdateAppointment(appointmentID, newDoctorID int, appointmentDate, newStart
 
 	return nil
 }
+
+// 6- Patient can cancel his appointment.
+func CancelAppointment(appointmentID int) error {
+	var count int
+	err := DB.QueryRow(`
+		SELECT COUNT(*) 
+		FROM appointments 
+		WHERE appointment_id = ? AND patient_id IS NOT NULL
+	`, appointmentID).Scan(&count)
+
+	if err != nil {
+		return err
+	}
+
+	if count == 0 {
+		return fmt.Errorf("appointment not found or already canceled")
+	}
+
+	_, err = DB.Exec(`
+		UPDATE appointments 
+		SET patient_id = NULL 
+		WHERE appointment_id = ?
+	`, appointmentID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

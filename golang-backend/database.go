@@ -43,7 +43,7 @@ func CreateTables() {
 	_, err = DB.Exec(`
 		CREATE TABLE IF NOT EXISTS appointments (
 			appointment_id INT AUTO_INCREMENT PRIMARY KEY,
-			doctor_id INT,
+			doctor_id INT NOT NULL,
 			patient_id INT,
 			appointment_date DATE NOT NULL,
 			start_time TIME NOT NULL,
