@@ -88,3 +88,31 @@ func CancelAppointment(appointmentID int) error {
 
 	return nil
 }
+
+// 7- Patients can view all his reservations.
+func ViewPatientAppointments(patientID int) ([]Appointment, error) {
+	rows, err := DB.Query(`
+		SELECT appointment_id, doctor_id, appointment_date, start_time, end_time 
+		FROM appointments 
+		WHERE patient_id = ?
+	`, patientID)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var patientAppointments []Appointment
+
+	for rows.Next() {
+		var appointment Appointment
+		err := rows.Scan(&appointment.AppointmentID, &appointment.DoctorID, &appointment.AppointmentDate, &appointment.StartTime, &appointment.EndTime)
+		if err != nil {
+			return nil, err
+		}
+
+		patientAppointments = append(patientAppointments, appointment)
+	}
+
+	return patientAppointments, nil
+}
