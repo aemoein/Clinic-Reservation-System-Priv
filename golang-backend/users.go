@@ -14,15 +14,7 @@ type User struct {
 	UserType string
 }
 
-func SignUp(user User) error {
-	_, err := DB.Exec(`
-		INSERT INTO users (name, email, password, usertype) 
-		VALUES (?, ?, ?, ?)
-	`, user.Name, user.Email, user.Password, user.UserType)
-
-	return err
-}
-
+// 1- Sign In
 func SignIn(email, password string) (*User, error) {
 	var user User
 	err := DB.QueryRow(`
@@ -38,4 +30,14 @@ func SignIn(email, password string) (*User, error) {
 	}
 
 	return &user, nil
+}
+
+// 2- Sign up
+func SignUp(user User) error {
+	_, err := DB.Exec(`
+		INSERT INTO users (name, email, password, usertype) 
+		VALUES (?, ?, ?, ?)
+	`, user.Name, user.Email, user.Password, user.UserType)
+
+	return err
 }

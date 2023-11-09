@@ -1,17 +1,35 @@
 package main
 
-type Patient struct {
-	ID   int
-	Name string
-	// Add more patient-related fields
-}
+import (
+	"time"
+)
 
-/*
-func CreatePatient(db *sql.DB, patient *Patient) error {
-	// Insert patient into the database
-}
+// 4- Patients select doctor, view his available slots, then patient chooses a slot.
+func ViewDoctorSlots(doctorID int, appointmentDate time.Time) ([]Appointment, error) {
+	rows, err := DB.Query(`
+		SELECT appointment_id, start_time, end_time 
+		FROM appointments 
+		WHERE doctor_id = ? 
+		AND appointment_date = ? 
+		AND patient_id IS NULL
+	`, doctorID, appointmentDate)
 
-func GetPatientByID(db *sql.DB, patientID int) (*Patient, error) {
-	// Retrieve a patient by ID from the database
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var availableSlots []Appointment
+
+	for rows.Next() {
+		var slot Appointment
+		err := rows.Scan(&slot.AppointmentID, &slot.StartTime, &slot.EndTime)
+		if err != nil {
+			return nil, err
+		}
+
+		availableSlots = append(availableSlots, slot)
+	}
+
+	return availableSlots, nil
 }
-*/
