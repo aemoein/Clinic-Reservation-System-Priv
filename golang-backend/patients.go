@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -32,4 +33,28 @@ func ViewDoctorSlots(doctorID int, appointmentDate time.Time) ([]Appointment, er
 	}
 
 	return availableSlots, nil
+}
+
+// 5- Patient can update his appointment by change the doctor or the slot.
+func UpdateAppointment(appointmentID, newDoctorID int, appointmentDate, newStartTime, newEndTime time.Time) error {
+	isSlotOccupied, err := IsSlotOccupied(newDoctorID, appointmentDate, newStartTime, newEndTime)
+	if err != nil {
+		return err
+	}
+
+	if isSlotOccupied {
+		return fmt.Errorf("the new slot is already occupied")
+	}
+
+	_, err = DB.Exec(`
+		UPDATE appointments 
+		SET doctor_id = ?, start_time = ?, end_time = ? 
+		WHERE appointment_id = ?
+	`, newDoctorID, newStartTime, newEndTime, appointmentID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

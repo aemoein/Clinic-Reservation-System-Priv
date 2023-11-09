@@ -14,7 +14,7 @@ type Appointment struct {
 	EndTime         time.Time
 }
 
-// SetDoctorSchedule sets the schedule for a doctor
+// 3. Doctor sets his schedule
 func SetDoctorSchedule(doctorID int, appointmentDate time.Time, startTime time.Time, endTime time.Time) error {
 	// Check if the slot is already occupied
 	isSlotOccupied, err := IsSlotOccupied(doctorID, appointmentDate, startTime, endTime)
