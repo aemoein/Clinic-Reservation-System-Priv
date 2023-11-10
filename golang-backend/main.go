@@ -27,8 +27,10 @@ func main() {
 	router.HandleFunc("/signin", SignInHandler).Methods("POST")
 	router.HandleFunc("/slots/view", ViewDoctorSlotsHandler).Methods("GET").Queries("doctorid", "{doctorid}")
 	router.HandleFunc("/slots/add", SetDoctorScheduleHandler).Methods("POST")
-	router.HandleFunc("/cancelAppiontment", CancelAppointmentHandler).Methods("PUT").Queries("appointmentid", "{appointmentid}")
-	router.HandleFunc("/viewReservations", ViewPatientAppointmentsHandler).Methods("GET").Queries("patientid", "{patientid}")
+	router.HandleFunc("/appointments/reserve", ReserveAppointmentHandler).Methods("POST")
+	router.HandleFunc("/appointments/cancel", CancelAppointmentHandler).Methods("PUT").Queries("appointmentid", "{appointmentid}")
+	router.HandleFunc("/appointments/view", ViewPatientAppointmentsHandler).Methods("GET").Queries("patientid", "{patientid}")
+	router.HandleFunc("/doctors", GetDoctorsHandler).Methods("GET")
 
 	http.ListenAndServe(":8081",
 		handlers.CORS(
@@ -174,6 +176,30 @@ func SetDoctorScheduleHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Slot added successfully")
 }
 
+func ReserveAppointmentHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the request body to get appointmentID and patientID
+	var reservationRequest struct {
+		AppointmentID int `json:"appointment_id"`
+		PatientID     int `json:"patient_id"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&reservationRequest); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Call the function to reserve the appointment
+	if err := ReserveAppointment(reservationRequest.AppointmentID, reservationRequest.PatientID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Respond with success
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Appointment reserved successfully")
+}
+
 func CancelAppointmentHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	AppointmentIdStr, ok := vars["appointmentid"]
@@ -254,6 +280,27 @@ func ViewPatientAppointmentsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
+}
+
+func GetDoctorsHandler(w http.ResponseWriter, r *http.Request) {
+	doctors, err := GetDoctors()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching doctors: %v", err)
+		return
+	}
+
+	// Serialize the doctors to JSON
+	jsonResponse, err := json.Marshal(doctors)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error creating JSON response: %v", err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
 }
 
 /*

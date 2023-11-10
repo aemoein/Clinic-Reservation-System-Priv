@@ -6,7 +6,7 @@ import axios from 'axios';
 import './SignUp.css'
 
 const SignUp = () => {
-  const history = useNavigate();
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -31,7 +31,7 @@ const SignUp = () => {
 
       console.log('Response data:', response.data);
 
-      history.push('/login');
+      navigate('/signin');
     } catch (error) {
       console.error('Error during sign-up:', error);
       console.log('Error response data:', error.response.data);

@@ -35,6 +35,21 @@ func ViewDoctorSlots(doctorID int, appointmentDate time.Time) ([]Appointment, er
 	return availableSlots, nil
 }
 
+func ReserveAppointment(appointmentID, patientID int) error {
+	// Update the patient ID for the given appointment
+	_, err := DB.Exec(`
+        UPDATE appointments 
+        SET patient_id = ? 
+        WHERE appointment_id = ?
+    `, patientID, appointmentID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // 5- Patient can update his appointment by change the doctor or the slot.
 func UpdateAppointment(appointmentID, newDoctorID int, appointmentDate, newStartTime, newEndTime string) error {
 	isSlotOccupied, err := IsSlotOccupied(newDoctorID, appointmentDate, newStartTime, newEndTime)
