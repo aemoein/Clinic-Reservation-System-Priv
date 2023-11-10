@@ -9,7 +9,7 @@ const Patient = () => {
   return (
     <div>
       <h1>Hello, {username}</h1>
-      <p>User Type: Patient</p>
+      <h2>User Type: Patient</h2>
       {/* Add other content for the patient page */}
     </div>
   );

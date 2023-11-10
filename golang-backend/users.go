@@ -29,6 +29,7 @@ func SignIn(email, password string) (*User, error) {
 		log.Fatal(err)
 	}
 
+	log.Printf("User data before returning: %+v", user)
 	return &user, nil
 }
 

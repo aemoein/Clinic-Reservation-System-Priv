@@ -47,7 +47,6 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log the received data
 	log.Printf("Received data: %+v", user)
 
 	err = SignUp(user)
@@ -75,7 +74,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Received data: %+v", credentials)
+	//log.Printf("Received data: %+v", credentials)
 
 	user, err := SignIn(credentials.Email, credentials.Password)
 	if err != nil {
@@ -84,28 +83,29 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare the response
+	log.Printf("User data: %+v", user)
+
 	response := map[string]interface{}{
 		"message":   "Sign in successful",
+		"userid":    user.UserID,
 		"user_type": user.UserType,
 		"username":  user.UserName,
 	}
 
-	// Serialize the response to JSON
+	log.Printf("User data id: %+v", user.UserID)
+
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
 		return
 	}
 
-	// Set the content type and write the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
 
 func viewAvailableSlotsHadler(w http.ResponseWriter, r *http.Request) {
-	//geting slots from the database
 	r.ParseForm()
 
 	doctorId := r.FormValue("doctorID")

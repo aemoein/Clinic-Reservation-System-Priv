@@ -29,10 +29,8 @@ const SignUp = () => {
         usertype,
       });
 
-      // Handle successful sign-up
       console.log('Response data:', response.data);
 
-      // Redirect to the login page
       history.push('/login');
     } catch (error) {
       console.error('Error during sign-up:', error);
