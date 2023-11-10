@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
@@ -14,10 +15,7 @@ import (
 func main() {
 	InitializeDB()
 	defer CloseDB()
-
 	CreateTables()
-
-	router := mux.NewRouter()
 
 	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Welcome to My Go Backend!")
@@ -25,6 +23,8 @@ func main() {
 
 	router.HandleFunc("/signup", SignUpHandler).Methods("POST")
 	router.HandleFunc("/signin", SignInHandler).Methods("POST")
+  //http.HandleFunc("/view",)
+	router.HandleFunc("/slots/view", viewAvailableSlotsHadler).Methods("GET")
 
 	http.ListenAndServe(":8081",
 		handlers.CORS(
@@ -96,6 +96,36 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Set the content type and write the response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}
+
+func viewAvailableSlotsHadler(w http.ResponseWriter, r *http.Request) {
+	//geting slots from the database
+	r.ParseForm()
+
+	doctorId := r.FormValue("doctorID")
+
+	i, err := strconv.Atoi(doctorId)
+	if err != nil {
+		fmt.Println("Conversion error:", err)
+		return
+	}
+
+	slots, err := getAvailableSlotsFromDB(DB, i)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching available slots: %v", err)
+		return
+	}
+
+	jsonResponse, err := json.Marshal(slots)
+	if err != nil {
+		http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
