@@ -98,7 +98,6 @@ const Patient = () => {
   const handleDoctorChange = (e) => {
     const selectedDoctorId = e.target.value;
     setSelectedDoctor(selectedDoctorId);
-    // Fetch available slots when a doctor is selected
     fetchDoctorSlots(selectedDoctorId);
   };
 
@@ -109,19 +108,24 @@ const Patient = () => {
 
   const handleReserve = async () => {
     try {
-      // Send a request to the server to reserve the selected slot
-      await axios.post('http://localhost:8081/appointments/reserve', {
-        appointment_id: selectedSlot,
-        patient_id: Number(userid),
-      });
+        const appointmentIdInt = parseInt(selectedSlot, 10);
 
-      // Refresh the list of patient appointments after reservation
-      fetchPatientAppointments();
+        // Send a request to the server to reserve the selected slot
+        await axios.post('http://localhost:8081/appointments/reserve', {
+            appointment_id: appointmentIdInt,
+            patient_id: Number(userid),
+        });
+
+        // Remove the reserved slot from the dropdown menu
+        setDoctorSlots(prevSlots => prevSlots.filter(slot => slot.appointment_id !== appointmentIdInt));
+
+        // Refresh the list of patient appointments after reservation
+        fetchPatientAppointments();
     } catch (error) {
-      console.error('Error reserving appointment:', error);
+        console.error('Error reserving appointment:', error);
     }
-  };
-
+};
+   
   useEffect(() => {
     fetchDoctors();
     fetchPatientAppointments();

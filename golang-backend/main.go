@@ -220,7 +220,6 @@ func SetDoctorScheduleHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ReserveAppointmentHandler(w http.ResponseWriter, r *http.Request) {
-	// Parse the request body to get appointmentID and patientID
 	var reservationRequest struct {
 		AppointmentID int `json:"appointment_id"`
 		PatientID     int `json:"patient_id"`
