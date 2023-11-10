@@ -36,7 +36,7 @@ func ViewDoctorSlots(doctorID int, appointmentDate time.Time) ([]Appointment, er
 }
 
 // 5- Patient can update his appointment by change the doctor or the slot.
-func UpdateAppointment(appointmentID, newDoctorID int, appointmentDate, newStartTime, newEndTime time.Time) error {
+func UpdateAppointment(appointmentID, newDoctorID int, appointmentDate, newStartTime, newEndTime string) error {
 	isSlotOccupied, err := IsSlotOccupied(newDoctorID, appointmentDate, newStartTime, newEndTime)
 	if err != nil {
 		return err
