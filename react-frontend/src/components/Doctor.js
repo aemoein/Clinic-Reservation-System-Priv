@@ -4,9 +4,7 @@ import axios from 'axios';
 import './Doctor.css';
 
 const Doctor = () => {
-  let { username, userid } = useParams();
-
-  console.log(username, userid);
+  const { username, userid } = useParams();
 
   const [slots, setSlots] = useState([]);
   const [newSlot, setNewSlot] = useState({
@@ -19,33 +17,33 @@ const Doctor = () => {
 
   const fetchDoctorSlots = async () => {
     try {
-        const response = await axios.get('http://localhost:8081/slots/view', {
-            params: { doctorid: userid },
-        });
+      const response = await axios.get('http://localhost:8081/slots/view', {
+        params: { doctorid: userid },
+      });
 
-        if (Array.isArray(response.data)) {
-            console.log("received data:", response.data);
-            setSlots(response.data);
-        } else {
-            console.error('Invalid data format for doctor slots:', response.data);
-        }
+      if (Array.isArray(response.data)) {
+        console.log("Received data:", response.data);
+        setSlots(response.data);
+      } else {
+        console.error('Invalid data format for doctor slots:', response.data);
+      }
     } catch (error) {
-        console.error('Error fetching doctor slots:', error);
+      console.error('Error fetching doctor slots:', error);
     }
-};
+  };
 
   useEffect(() => {
     fetchDoctorSlots();
   }, [username]);
 
   const handleEdit = (slotId) => {
-    // Implement edit logic for the selected slot
     console.log(`Edit slot with ID ${slotId}`);
+    // Implement edit logic for the selected slot
   };
 
   const handleCancel = (slotId) => {
-    // Implement cancel logic for the selected slot
     console.log(`Cancel slot with ID ${slotId}`);
+    // Implement cancel logic for the selected slot
   };
 
   const handleInputChange = (e) => {
@@ -54,17 +52,23 @@ const Doctor = () => {
       ...prevSlot,
       [name]: value,
     }));
-  };
+  };  
 
   const handleAddSlot = async () => {
     try {
       // Send a request to the server to add the new slot
-      console.log('new slot sent: ', newSlot)
-      await axios.post(`http://localhost:8081/slots/add`, newSlot);
+      console.log('New slot sent:', newSlot);
+      await axios.post('http://localhost:8081/slots/add', newSlot);
       // Refresh the list of slots after adding a new one
       fetchDoctorSlots();
       // Clear the input fields
-      setNewSlot({ date: '', startTime: '', endTime: '' });
+      setNewSlot({
+        doctor_id: Number(userid),
+        patient_id: 0,
+        appointment_date: '',
+        start_time: '',
+        end_time: '',
+      });
     } catch (error) {
       console.error('Error adding slot:', error);
     }
@@ -102,21 +106,21 @@ const Doctor = () => {
       {/* Form to add a new slot */}
       <h2>Add New Slot</h2>
       <form>
-            <label>
-                Date:
-            </label>
-            <input type="date" name="appointment_date" value={newSlot.appointment_date} onChange={handleInputChange} />
-            <label>
-                Start Time:
-            </label>
-            <input type="time" name="start_time" value={newSlot.start_time} onChange={handleInputChange} />
-            <label>
-                End Time:
-            </label>
-            <input type="time" name="end_time" value={newSlot.end_time} onChange={handleInputChange} />
-            <button type="button" onClick={handleAddSlot}>
-                Add Slot
-            </button>
+        <label>
+          Date:
+        </label>
+        <input type="date" name="appointment_date" value={newSlot.appointment_date} onChange={handleInputChange} />
+        <label>
+          Start Time:
+        </label>
+        <input type="time" name="start_time" value={newSlot.start_time} onChange={handleInputChange} />
+        <label>
+          End Time:
+        </label>
+        <input type="time" name="end_time" value={newSlot.end_time} onChange={handleInputChange} />
+        <button type="button" onClick={handleAddSlot}>
+          Add Slot
+        </button>
       </form>
     </div>
   );
