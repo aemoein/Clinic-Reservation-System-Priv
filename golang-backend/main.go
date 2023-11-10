@@ -34,6 +34,13 @@ func main() {
 			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 			handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 		)(router))
+	r := mux.NewRouter()
+
+	http.HandleFunc("/AddSlot/{DId}/{APTime}/{STime}/{ETime}", SetDoctorSchedulHandler).Methods("POST")
+	http.HandleFunc("/CancelAppiontment/{APId}", CancelAppiontmentHandler).Methods("DELETE")
+	http.HandleFunc("/reviewReservations", ViewPatientAppointmentsHandler).Methods("GET")
+	http.Handle("/", r)
+	http.ListenAndServe(":8080", nil)
 }
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -113,7 +120,7 @@ func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Doctor ID not provided in the URL")
 		return
 	}
-
+  
 	// Convert doctorIDStr to an integer
 	doctorID, err := strconv.Atoi(doctorIDStr)
 	if err != nil {
@@ -148,6 +155,71 @@ func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonData)
+}
+
+func SetDoctorScheduleHandler(writer http.ResponseWriter, request *http.Request) {
+	newSlot := &Appointment{}
+	var appointmentRequest AppointmentRequest
+	decoder := json.NewDecoder(request.Body)
+	err := decoder.Decode(&appointmentRequest)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+	r.ParseForm(request, SetDoctorSchedule())
+	slot := newSlot.SetDoctorSchedul(appointmentRequest.DoctorID, appointmentRequest.AppointmentDate, appointmentRequest.start_time, appointmentRequest.end_time)
+	res, _ := json.Marshal(slot)
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusCreated)
+	writer.Write(res)
+}
+
+func CancelAppointmentHandler(writer http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+	AppointmentId := vars["APId"]
+
+	id, err := strconv.Atoi(AppointmentId)
+	if err != nil {
+		http.Error(writer, "Invalid appointment ID", http.StatusBadRequest)
+		return
+	}
+
+	var appointmentRequest AppointmentRequest
+	err = json.NewDecoder(request.Body).Decode(&appointmentRequest)
+	if err != nil {
+		http.Error(writer, "Error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	res, _ := json.Marshal(CancelAppointment(int(id)))
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusNoContent)
+	writer.Write(res)
+}
+
+func ViewPatientAppointmentsHandler(writer http.ResponseWriter, request *http.Request) {
+	reservations := mux.Vars(request)
+	patientID := vars["PId"]
+
+	id, err := strconv.Atoi(patientID)
+	if err != nil {
+		http.Error(writer, "Invalid Patient ID", http.StatusBadRequest)
+		return
+	}
+
+	var appointmentRequest AppointmentRequest
+	err = json.NewDecoder(request.Body).Decode(&appointmentRequest)
+	if err != nil {
+		http.Error(writer, "Error decoding request body", http.StatusBadRequest)
+		return
+	}
+
+	res, _ := json.Marshal(ViewPatientAppointments(patientID))
+
+	writer.Header().Set("Content-Type", "application/json")
+	writer.WriteHeader(http.StatusOK)
+	writer.Write(res)
 }
 
 /*
