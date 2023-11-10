@@ -17,13 +17,15 @@ func main() {
 	defer CloseDB()
 	CreateTables()
 
+	router := mux.NewRouter()
+
 	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Welcome to My Go Backend!")
 	}).Methods("GET")
 
 	router.HandleFunc("/signup", SignUpHandler).Methods("POST")
 	router.HandleFunc("/signin", SignInHandler).Methods("POST")
-  //http.HandleFunc("/view",)
+	//http.HandleFunc("/view",)
 	router.HandleFunc("/slots/view", viewAvailableSlotsHadler).Methods("GET")
 
 	http.ListenAndServe(":8081",
@@ -86,6 +88,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	response := map[string]interface{}{
 		"message":   "Sign in successful",
 		"user_type": user.UserType,
+		"username":  user.UserName,
 	}
 
 	// Serialize the response to JSON

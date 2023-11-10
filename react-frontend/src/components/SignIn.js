@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import axios from 'axios';
 import './SignIn.css';
 
@@ -7,7 +7,7 @@ const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loginStatus, setLoginStatus] = useState(null); // null: initial state, true: success, false: failure
-  const history = useNavigate();
+  const navigate = useNavigate();
 
   const handleSignIn = async () => {
     try {
@@ -19,15 +19,23 @@ const SignIn = () => {
       console.log('Response data:', response.data);
       // Assuming the backend returns user type in the response
       const userType = response.data.user_type;
+      const username = response.data.username;
   
+      console.log('Name and type recieved:', { userType, username })
       // Set login success status
       setLoginStatus(true);
-  
-      /*if (userType === 'doctor') {
-        history.push('/doctor-dashboard');
-      } else if (userType === 'patient') {
-        history.push('/patient-dashboard');
-      }*/
+
+      if (userType === "doctor") {
+        navigate("/doctor", {
+          replace: true,
+          state: { username, userType },
+        });
+      } else if (userType === "patient") {
+        navigate("/patient", {
+          replace: true,
+          state: { username, userType },
+        });
+      }
     } catch (error) {
       // Set login failure status
       setLoginStatus(false);
