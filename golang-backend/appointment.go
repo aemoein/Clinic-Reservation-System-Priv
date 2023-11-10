@@ -58,13 +58,7 @@ func IsSlotOccupied(doctorID int, appointmentDate time.Time, startTime time.Time
 	return count > 0, nil
 }
 
-/*func getAvailableSlotsFromDB(doctorID int) ([]Slot, error) {
-		query := DB.QueryRow(`SELECT * FROM appointments`)
-		return query
-
-}*/
-
-func getAvailableSlotsFromDB(db *sql.DB, doctorID int) ([]int, error) {
+func getAvailableSlotsFromDB(db *sql.DB, doctorID int) ([]Appointment, error) {
 	// Define the query to select available slots for a specific doctor
 	query := "SELECT * FROM appointments WHERE doctor_id = ?"
 
@@ -75,16 +69,16 @@ func getAvailableSlotsFromDB(db *sql.DB, doctorID int) ([]int, error) {
 	}
 	defer rows.Close()
 
-	var slots []int
+	var slots []Appointment
 
 	// Iterate over the rows and scan the results into the slots slice
 	for rows.Next() {
-		var slotID int
-		err := rows.Scan(&slotID)
+		var slot Appointment
+		err := rows.Scan(&slot.AppointmentID, &slot.DoctorID, &slot.PatientID, &slot.AppointmentDate, &slot.StartTime, &slot.EndTime)
 		if err != nil {
 			return nil, err
 		}
-		slots = append(slots, slotID)
+		slots = append(slots, slot)
 	}
 
 	if err := rows.Err(); err != nil {
