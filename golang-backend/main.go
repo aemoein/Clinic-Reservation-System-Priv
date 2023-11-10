@@ -21,6 +21,8 @@ func main() {
 	http.HandleFunc("/signin", SignInHandler)
 	//http.HandleFunc("/view",)
 	r.HandleFunc("/slots/view", viewAvailableSlotsHadler).Methods("GET")
+	r.HandleFunc("/updateAppointment/Slot", UpdateAppointmentSlotHandler).Methods("POST")
+	r.HandleFunc("/cancelAppointment", CancelAppointmentHandler).Methods("POST")
 
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
@@ -110,6 +112,24 @@ func viewAvailableSlotsHadler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
+}
+
+func UpdateAppointmentSlotHandler(w http.ResponseWriter, r *http.Request) {
+	// Parse the request body into an Appointment struct
+	var appointment Appointment
+	err := json.NewDecoder(r.Body).Decode(&appointment)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Error parsing request body: %v", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintf(w, "Appointment updated successfully")
+}
+
+func CancelAppointmentHandler() {
+
 }
 
 /*

@@ -71,6 +71,11 @@ func IsSlotBooked(AppointmentID int) (bool, error) {
 	return isBooked, nil
 }
 
+// I am supposing that in the front-end the user will choose time from a drop down meneu
+func UpdateAppointmentSlot(AppointmentID int, StartTime time.Time, EndTime time.Time) {
+
+}
+
 /*func getAvailableSlotsFromDB(doctorID int) ([]Slot, error) {
 		query := DB.QueryRow(`SELECT * FROM appointments`)
 		return query
