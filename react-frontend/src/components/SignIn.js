@@ -26,15 +26,9 @@ const SignIn = () => {
       setLoginStatus(true);
 
       if (userType === "doctor") {
-        navigate("/doctor", {
-          replace: true,
-          state: { username, userType },
-        });
+        navigate("/doctor/"+username);
       } else if (userType === "patient") {
-        navigate("/patient", {
-          replace: true,
-          state: { username, userType },
-        });
+        navigate("/patient/"+username);
       }
     } catch (error) {
       // Set login failure status

@@ -1,18 +1,15 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
-const Patient = ({ username, userType }) => {
-  const location = useLocation();
+const Patient = () => {
+    let { username } = useParams();
 
-  // If the user data is not passed from the login page, redirect to the login page
-  if (!location.state) {
-    return window.location.replace('/login');
-  }
+    console.log (username);
 
   return (
     <div>
       <h1>Hello, {username}</h1>
-      <p>User Type: {userType}</p>
+      <p>User Type: Patient</p>
       {/* Add other content for the patient page */}
     </div>
   );
