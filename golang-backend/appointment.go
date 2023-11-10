@@ -13,6 +13,7 @@ type Appointment struct {
 	AppointmentDate time.Time
 	StartTime       time.Time
 	EndTime         time.Time
+	IsBooked        bool
 }
 
 // 3. Doctor sets his schedule
@@ -40,6 +41,7 @@ func SetDoctorSchedule(doctorID int, appointmentDate time.Time, startTime time.T
 	return nil
 }
 
+// for this function I implemented another one depending on the new added field is_booked called IsSlotBooked
 // IsSlotOccupied checks if the slot is already occupied
 func IsSlotOccupied(doctorID int, appointmentDate time.Time, startTime time.Time, endTime time.Time) (bool, error) {
 	var count int
@@ -58,6 +60,17 @@ func IsSlotOccupied(doctorID int, appointmentDate time.Time, startTime time.Time
 	return count > 0, nil
 }
 
+func IsSlotBooked(AppointmentID int) (bool, error) {
+	// Query the database to check the is_booked status for the given AppointmentID
+	var isBooked bool
+	err := DB.QueryRow("SELECT is_booked FROM appointments WHERE appointment_id = ?", AppointmentID).Scan(&isBooked)
+	if err != nil {
+		return false, err
+	}
+
+	return isBooked, nil
+}
+
 /*func getAvailableSlotsFromDB(doctorID int) ([]Slot, error) {
 		query := DB.QueryRow(`SELECT * FROM appointments`)
 		return query
@@ -66,7 +79,7 @@ func IsSlotOccupied(doctorID int, appointmentDate time.Time, startTime time.Time
 
 func getAvailableSlotsFromDB(db *sql.DB, doctorID int) ([]int, error) {
 	// Define the query to select available slots for a specific doctor
-	query := "SELECT * FROM appointments WHERE doctor_id = ?"
+	query := "SELECT * FROM appointments WHERE doctor_id = ? AND is_booked = TRUE"
 
 	// Execute the query and retrieve the rows
 	rows, err := db.Query(query, doctorID)

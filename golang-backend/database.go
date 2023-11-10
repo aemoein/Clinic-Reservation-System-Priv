@@ -49,7 +49,8 @@ func CreateTables() {
 			start_time TIME NOT NULL,
 			end_time TIME NOT NULL,
 			FOREIGN KEY (doctor_id) REFERENCES users(userid),
-			FOREIGN KEY (patient_id) REFERENCES users(userid)
+			FOREIGN KEY (patient_id) REFERENCES users(userid),
+			is_booked BOOLEAN DEFAULT false
 		)
 	`)
 	if err != nil {
