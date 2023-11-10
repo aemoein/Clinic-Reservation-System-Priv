@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 )
@@ -55,4 +56,40 @@ func IsSlotOccupied(doctorID int, appointmentDate time.Time, startTime time.Time
 	}
 
 	return count > 0, nil
+}
+
+/*func getAvailableSlotsFromDB(doctorID int) ([]Slot, error) {
+		query := DB.QueryRow(`SELECT * FROM appointments`)
+		return query
+
+}*/
+
+func getAvailableSlotsFromDB(db *sql.DB, doctorID int) ([]int, error) {
+	// Define the query to select available slots for a specific doctor
+	query := "SELECT * FROM appointments WHERE doctor_id = ?"
+
+	// Execute the query and retrieve the rows
+	rows, err := db.Query(query, doctorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var slots []int
+
+	// Iterate over the rows and scan the results into the slots slice
+	for rows.Next() {
+		var slotID int
+		err := rows.Scan(&slotID)
+		if err != nil {
+			return nil, err
+		}
+		slots = append(slots, slotID)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return slots, nil
 }

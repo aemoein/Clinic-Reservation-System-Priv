@@ -3,10 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus/hooks/writer"
 )
@@ -14,9 +16,23 @@ import (
 func main() {
 	InitializeDB()
 	defer CloseDB()
-
 	CreateTables()
 
+	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Welcome to My Go Backend!")
+	}).Methods("GET")
+
+	router.HandleFunc("/signup", SignUpHandler).Methods("POST")
+	router.HandleFunc("/signin", SignInHandler).Methods("POST")
+  //http.HandleFunc("/view",)
+	router.HandleFunc("/slots/view", viewAvailableSlotsHadler).Methods("GET")
+
+	http.ListenAndServe(":8081",
+		handlers.CORS(
+			handlers.AllowedOrigins([]string{"*"}),
+			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+			handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
+		)(router))
 	r := mux.NewRouter()
 	http.HandleFunc("/signup", SignUpHandler)
 	http.HandleFunc("/signin", SignInHandler)
@@ -29,36 +45,47 @@ func main() {
 
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	var user User
 
-	username := r.FormValue("username")
-	email := r.FormValue("email")
-	password := r.FormValue("password")
-	usertype := r.FormValue("usertype")
-
-	user := User{
-		Name:     username,
-		Email:    email,
-		Password: password,
-		UserType: usertype,
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&user)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Error decoding JSON: %v", err)
+		return
 	}
 
-	err := SignUp(user)
+	// Log the received data
+	log.Printf("Received data: %+v", user)
+
+	err = SignUp(user)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Error signing up: %v", err)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, "Signup successful")
 }
 
 func SignInHandler(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	password := r.FormValue("password")
+	var credentials struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
-	user, err := SignIn(email, password)
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&credentials)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Error decoding JSON: %v", err)
+		return
+	}
+
+	log.Printf("Received data: %+v", credentials)
+
+	user, err := SignIn(credentials.Email, credentials.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Error signing in: %v", err)
@@ -150,6 +177,36 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 
+
+func viewAvailableSlotsHadler(w http.ResponseWriter, r *http.Request) {
+	//geting slots from the database
+	r.ParseForm()
+
+	doctorId := r.FormValue("doctorID")
+
+	i, err := strconv.Atoi(doctorId)
+	if err != nil {
+		fmt.Println("Conversion error:", err)
+		return
+	}
+
+	slots, err := getAvailableSlotsFromDB(DB, i)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching available slots: %v", err)
+		return
+	}
+
+	jsonResponse, err := json.Marshal(slots)
+	if err != nil {
+		http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonResponse)
+}
 
 /*
 package main

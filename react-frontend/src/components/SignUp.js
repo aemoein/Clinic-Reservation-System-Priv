@@ -1,121 +1,97 @@
 // src/components/SignUp.js
 
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './SignUp.css'
 
 const SignUp = () => {
-  const [userType, setUserType] = useState('patient');
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    // Additional fields for patients
-    dob: '',
-    gender: '',
-    // Additional field for doctors
-    specialization: '',
-  });
-  const [successMessage, setSuccessMessage] = useState('');
+  const history = useNavigate();
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [usertype, setUsertype] = useState('');
+  const [error, setError] = useState('');
 
-  const handleFormSubmit = async (e) => {
-    e.preventDefault();
-    
+  const handleSignUp = async () => {
+    console.log('Data sent to the backend:', {
+      username,
+      email,
+      password,
+      usertype,
+    });
+
     try {
-      const response = await axios.post('your_backend_endpoint', {
-        userType,
-        ...formData,
+      const response = await axios.post('http://localhost:8081/signup', {
+        username,
+        email,
+        password,
+        usertype,
       });
 
-      // Assuming the backend returns a success message
-      setSuccessMessage(response.data.message);
-    } catch (error) {
-      // Handle errors, e.g., display an error message
-      console.error('Sign-up failed:', error);
-    }
-  };
+      // Handle successful sign-up
+      console.log('Response data:', response.data);
 
-  const handleUserTypeChange = (e) => {
-    setUserType(e.target.value);
+      // Redirect to the login page
+      history.push('/login');
+    } catch (error) {
+      console.error('Error during sign-up:', error);
+      console.log('Error response data:', error.response.data);
+      setError('Error signing up. Please try again.');
+    }
   };
 
   return (
     <div className="signup-page">
-      <h1>Sign Up</h1>
-      <div className="user-type-selection">
+      <h2>Sign Up</h2>
+      {error && <div style={{ color: 'red', border: '1px solid red', padding: '10px', marginBottom: '10px' }}>{error}</div>}
+      <form>
         <label>
-          <input
-            type="radio"
-            value="patient"
-            checked={userType === 'patient'}
-            onChange={handleUserTypeChange}
-          />
-          Patient
+          User Name:
+          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
         </label>
+        <br />
         <label>
-          <input
-            type="radio"
-            value="doctor"
-            checked={userType === 'doctor'}
-            onChange={handleUserTypeChange}
-          />
-          Doctor
+          Email:
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
-      </div>
-
-      {successMessage && <p className="success-message">{successMessage}</p>}
-
-      <form onSubmit={handleFormSubmit}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={formData.password}
-          onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-        />
-        
-        {userType === 'patient' && (
-          <div>
-            <input
-              type="date"
-              placeholder="Date of Birth"
-              value={formData.dob}
-              onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-            />
-            <select
-              value={formData.gender}
-              onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-            >
-              <option value="">Select Gender</option>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
+        <br />
+        <label>
+          Password:
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        </label>
+        <br />
+        <label className="radiomain">
+          User Type:
+          <div className="radio">
+            <label>
+              <input
+                type="radio"
+                value="doctor"
+                checked={usertype === 'doctor'}
+                onChange={() => setUsertype('doctor')}
+                className="radiobtn"
+              />
+              doctor
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="patient"
+                checked={usertype === 'patient'}
+                onChange={() => setUsertype('patient')}
+                className="radiobtn"
+              />
+              patient
+            </label>
           </div>
-        )}
-        
-        {userType === 'doctor' && (
-          <input
-            type="text"
-            placeholder="Specialization"
-            value={formData.specialization}
-            onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-          />
-        )}
-        
-        <button type="submit">Sign Up</button>
+        </label>
+        <br />
+        <button type="button" onClick={handleSignUp}>
+          Sign Up
+        </button>
       </form>
+      <Link to="/signin">Already Signed Up? Login</Link>
     </div>
   );
 };
