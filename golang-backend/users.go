@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	UserID   int
-	Name     string
-	Email    string
-	Password string
-	UserType string
+	UserID   int    `json:"userid"`
+	UserName string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	UserType string `json:"usertype"`
 }
 
 // 1- Sign In
@@ -21,7 +21,7 @@ func SignIn(email, password string) (*User, error) {
 		SELECT userid, name, email, password, usertype 
 		FROM users 
 		WHERE email = ? AND password = ?
-	`, email, password).Scan(&user.UserID, &user.Name, &user.Email, &user.Password, &user.UserType)
+	`, email, password).Scan(&user.UserID, &user.UserName, &user.Email, &user.Password, &user.UserType)
 
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("user not found")
@@ -37,7 +37,7 @@ func SignUp(user User) error {
 	_, err := DB.Exec(`
 		INSERT INTO users (name, email, password, usertype) 
 		VALUES (?, ?, ?, ?)
-	`, user.Name, user.Email, user.Password, user.UserType)
+	`, user.UserName, user.Email, user.Password, user.UserType)
 
 	return err
 }
