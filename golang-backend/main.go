@@ -34,8 +34,7 @@ func main() {
 			handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 		)(router))
 	r := mux.NewRouter()
-	http.HandleFunc("/signup", SignUpHandler)
-	http.HandleFunc("/signin", SignInHandler)
+	
 	http.HandleFunc("/AddSlot/{DId}/{APTime}/{STime}/{ETime}" , SetDoctorSchedulHandler).Methods("POST")
 	http.HandleFunc("/CancelAppiontment/{APId}",  CancelAppiontmentHandler).Methods("DELETE")
 	http.HandleFunc("/reviewReservations" , ViewPatientAppointmentsHandler).Methods("GET")
