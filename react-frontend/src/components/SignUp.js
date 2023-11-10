@@ -1,10 +1,12 @@
 // src/components/SignUp.js
 
 import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './SignUp.css'
 
 const SignUp = () => {
+  const history = useNavigate();
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -18,7 +20,7 @@ const SignUp = () => {
       password,
       usertype,
     });
-    
+
     try {
       const response = await axios.post('http://localhost:8081/signup', {
         username,
@@ -26,15 +28,18 @@ const SignUp = () => {
         password,
         usertype,
       });
-  
+
       // Handle successful sign-up
       console.log('Response data:', response.data);
+
+      // Redirect to the login page
+      history.push('/login');
     } catch (error) {
       console.error('Error during sign-up:', error);
       console.log('Error response data:', error.response.data);
       setError('Error signing up. Please try again.');
     }
-  };  
+  };
 
   return (
     <div className="signup-page">
@@ -86,6 +91,7 @@ const SignUp = () => {
           Sign Up
         </button>
       </form>
+      <Link to="/signin">Already Signed Up? Login</Link>
     </div>
   );
 };

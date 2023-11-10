@@ -60,10 +60,22 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func SignInHandler(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-	password := r.FormValue("password")
+	var credentials struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
 
-	user, err := SignIn(email, password)
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&credentials)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Error decoding JSON: %v", err)
+		return
+	}
+
+	log.Printf("Received data: %+v", credentials)
+
+	user, err := SignIn(credentials.Email, credentials.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprintf(w, "Error signing in: %v", err)

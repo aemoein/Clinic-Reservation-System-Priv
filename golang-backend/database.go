@@ -31,7 +31,7 @@ func CreateTables() {
 		CREATE TABLE IF NOT EXISTS users (
 			userid INT AUTO_INCREMENT PRIMARY KEY,
 			name VARCHAR(50) NOT NULL,
-			email VARCHAR(50) NOT NULL,
+			email VARCHAR(50) UNIQUE NOT NULL,
 			password VARCHAR(50) NOT NULL,
 			usertype ENUM('doctor', 'patient') NOT NULL
 		)
