@@ -11,6 +11,23 @@ import (
 	"github.com/sirupsen/logrus/hooks/writer"
 )
 
+func main() {
+	InitializeDB()
+	defer CloseDB()
+
+	CreateTables()
+
+	r := mux.NewRouter()
+	http.HandleFunc("/signup", SignUpHandler)
+	http.HandleFunc("/signin", SignInHandler)
+	http.HandleFunc("/AddSlot/{DId}/{APTime}/{STime}/{ETime}" , SetDoctorSchedulHandler).Methods("POST")
+	http.HandleFunc("/CancelAppiontment/{APId}",  CancelAppiontmentHandler).Methods("DELETE")
+	http.HandleFunc("/reviewReservations" , ViewPatientAppointmentsHandler).Methods("GET")
+	http.Handle("/", r)
+	http.ListenAndServe(":8080", nil)
+}
+
+
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
 
@@ -132,21 +149,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
-func main() {
-	InitializeDB()
-	defer CloseDB()
 
-	CreateTables()
-
-	r := mux.NewRouter()
-	http.HandleFunc("/signup", SignUpHandler)
-	http.HandleFunc("/signin", SignInHandler)
-	http.HandleFunc("/AddSlot/{DId}/{APTime}/{STime}/{ETime}" , SetDoctorSchedulHandler).Methods("POST")
-	http.HandleFunc("/CancelAppiontment/{APId}",  CancelAppiontmentHandler).Methods("DELETE")
-	http.HandleFunc("/reviewReservations" , ViewPatientAppointmentsHandler).Methods("GET")
-	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
-}
 
 /*
 package main
