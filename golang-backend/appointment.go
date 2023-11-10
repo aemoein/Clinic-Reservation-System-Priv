@@ -6,12 +6,12 @@ import (
 )
 
 type Appointment struct {
-	AppointmentID   int
-	DoctorID        int
-	PatientID       int
-	AppointmentDate time.Time
-	StartTime       time.Time
-	EndTime         time.Time
+	AppointmentID   int 'jason: "AId" '
+	DoctorID        int  'jason: "DId"'
+	PatientID       int  'jason: "PId"'
+	AppointmentDate time.Time 'jason: "APTime"'
+	StartTime       time.Time 'jason: "STime"'
+	EndTime         time.Time 'jason: "ETime"'
 }
 
 // 3. Doctor sets his schedule

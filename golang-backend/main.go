@@ -4,24 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus/hooks/writer"
 )
-
-func main() {
-	InitializeDB()
-	defer CloseDB()
-
-	CreateTables()
-
-	r := mux.NewRouter()
-	http.HandleFunc("/signup", SignUpHandler)
-	http.HandleFunc("/signin", SignInHandler)
-
-	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
-}
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseForm()
@@ -60,6 +48,71 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	func SetDoctorSchedulHandler(writer http.ResponseWriter, request *http.Request){
+		newSlot := &Appointment{}
+		var appointmentRequest AppointmentRequest
+		decoder := json.NewDecoder(request.Body)
+		err := decoder.Decode(&appointmentRequest)
+		if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+		}
+		r.ParseForm(request, SetDoctorSchedule())
+		slot := newSlot.SetDoctorSchedul(appointmentRequest.DoctorID, appointmentRequest.AppointmentDate, appointmentRequest.start_time,appointmentRequest.end_time)
+		res, _ := json.Marshal(slot)
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusCreated)
+		writer.Write(res)
+	}
+
+	func CancelAppointmentHandler(writer http.http.ResponseWriter, request *http.Request){
+		vars := mux.Vars(request)
+		AppointmentId := vars["APId"]
+		
+		id, err := strconv.Atoi(AppointmentId)
+		if err != nil {
+		http.Error(writer, "Invalid appointment ID", http.StatusBadRequest)
+		return
+		}
+
+		var appointmentRequest AppointmentRequest
+		err = json.NewDecoder(request.Body).Decode(&appointmentRequest)
+		if err != nil {
+		http.Error(writer, "Error decoding request body", http.StatusBadRequest)
+		return
+		}
+
+		res, _ := json.Marshal(CancelAppointment(int(id)))
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusNoContent)
+		writer.Write(res)
+	}
+
+	func ViewPatientAppointmentsHandler(writer http.http.ResponseWriter, request *http.Request)  {
+		reservations := mux.Vars(request)
+		patientID := vars ["PId"]
+
+		id, err := strconv.Atoi(patientID)
+		if err != nil {
+		http.Error(writer, "Invalid Patient ID", http.StatusBadRequest)
+		return
+		}
+
+		var appointmentRequest AppointmentRequest
+		err = json.NewDecoder(request.Body).Decode(&appointmentRequest)
+		if err != nil {
+		http.Error(writer, "Error decoding request body", http.StatusBadRequest)
+		return
+		}
+
+		res, _ := json.Marshal(ViewPatientAppointments(patientID))
+
+		writer.Header().Set("Content-Type", "application/json")
+		writer.WriteHeader(http.StatusOK)
+		writer.Write(res)
+	}
+
 	// Prepare the response
 	response := map[string]interface{}{
 		"message":   "Sign in successful",
@@ -77,6 +130,22 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
+}
+
+func main() {
+	InitializeDB()
+	defer CloseDB()
+
+	CreateTables()
+
+	r := mux.NewRouter()
+	http.HandleFunc("/signup", SignUpHandler)
+	http.HandleFunc("/signin", SignInHandler)
+	http.HandleFunc("/AddSlot/{DId}/{APTime}/{STime}/{ETime}" , SetDoctorSchedulHandler).Methods("POST")
+	http.HandleFunc("/CancelAppiontment/{APId}",  CancelAppiontmentHandler).Methods("DELETE")
+	http.HandleFunc("/reviewReservations" , ViewPatientAppointmentsHandler).Methods("GET")
+	http.Handle("/", r)
+	http.ListenAndServe(":8080", nil)
 }
 
 /*
