@@ -17,6 +17,7 @@ const Patient = () => {
       const response = await axios.get('http://localhost:8081/doctors');
       if (Array.isArray(response.data)) {
         setDoctors(response.data);
+        console.log('doctors recieved', response.data)
       } else {
         console.error('Invalid data format for doctors:', response.data);
       }
@@ -77,10 +78,11 @@ const Patient = () => {
     }
   };
 
-  const fetchDoctorSlots = async () => {
+  const fetchDoctorSlots = async (doctorId) => {
     try {
-      const response = await axios.get('http://localhost:8081/slots/view', {
-        params: { doctorid: selectedDoctor },
+       console.log('Fetching doctor slots for:', selectedDoctor);
+      const response = await axios.get('http://localhost:8081/slots/view/empty', {
+        params: { doctorid: doctorId },
       });
 
       if (Array.isArray(response.data)) {

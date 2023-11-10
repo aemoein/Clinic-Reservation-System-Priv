@@ -40,3 +40,35 @@ func GetDoctors() ([]Doctor, error) {
 
 	return doctors, nil
 }
+
+func FetchEmptyDoctorSlots(doctorID int) ([]Appointment, error) {
+	rows, err := DB.Query(`
+		SELECT appointment_id, IFNULL(patient_id, 0) as patient_id, 
+		       appointment_date, start_time, end_time 
+		FROM appointments 
+		WHERE doctor_id = ? AND patient_id IS NULL
+	`, doctorID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var slots []Appointment
+
+	for rows.Next() {
+		var slot Appointment
+
+		err := rows.Scan(&slot.AppointmentID, &slot.PatientID,
+			&slot.AppointmentDate, &slot.StartTime, &slot.EndTime)
+		if err != nil {
+			return nil, err
+		}
+
+		slots = append(slots, slot)
+
+		// Print the fetched data in the console
+		log.Printf("Fetched Data: %+v\n", slot)
+	}
+
+	return slots, nil
+}

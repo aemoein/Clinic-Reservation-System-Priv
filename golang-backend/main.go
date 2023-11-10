@@ -26,6 +26,7 @@ func main() {
 	router.HandleFunc("/signup", SignUpHandler).Methods("POST")
 	router.HandleFunc("/signin", SignInHandler).Methods("POST")
 	router.HandleFunc("/slots/view", ViewDoctorSlotsHandler).Methods("GET").Queries("doctorid", "{doctorid}")
+	router.HandleFunc("/slots/view/empty", ViewEmptyDoctorSlotsHandler).Methods("GET").Queries("doctorid", "{doctorid}")
 	router.HandleFunc("/slots/add", SetDoctorScheduleHandler).Methods("POST")
 	router.HandleFunc("/appointments/reserve", ReserveAppointmentHandler).Methods("POST")
 	router.HandleFunc("/appointments/cancel", CancelAppointmentHandler).Methods("PUT").Queries("appointmentid", "{appointmentid}")
@@ -126,6 +127,48 @@ func ViewDoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("ID received: %d", doctorID)
 
 	slots, err := FetchDoctorSlots(doctorID)
+	if err != nil {
+		log.Printf("Error fetching doctor slots: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching doctor slots: %v", err)
+		return
+	}
+
+	jsonData, err := json.Marshal(slots)
+	if err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error creating JSON response: %v", err)
+		return
+	}
+	log.Printf("JSON being sent: %s", jsonData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
+
+func ViewEmptyDoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	doctorIDStr, ok := vars["doctorid"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Doctor ID not provided in the URL")
+		return
+	}
+
+	doctorID, err := strconv.Atoi(doctorIDStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid doctor ID: %v", err)
+		return
+	}
+
+	log.Printf("ID received: %d", doctorID)
+
+	slots, err := FetchEmptyDoctorSlots(doctorID)
 	if err != nil {
 		log.Printf("Error fetching doctor slots: %v", err)
 
