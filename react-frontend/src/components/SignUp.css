@@ -22,10 +22,26 @@
     justify-content: center;
     margin: 20px 0;
   }
+
+  .radio {
+    display: inline-block;
+    padding-left: 15px;
+    padding-right: 15px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .radiobtn {
+    display: inline-block;
+    width: auto;
+    margin: 15px;
+  }
   
   label {
     margin: 0 10px;
+    display: inline-block;
     cursor: pointer;
+    text-align: left;
   }
   
   .signup-form {
@@ -35,7 +51,7 @@
   }
   
   input {
-    width: 90%;
+    width: 350px;
     padding: 10px;
     margin: 10px 0;
     border: 1px solid #ccc;
