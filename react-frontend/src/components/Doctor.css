@@ -1,0 +1,61 @@
+/* Add this CSS to your Doctor component */
+
+/* Container styles */
+div {
+    margin: 20px;
+  }
+  
+  /* Header styles */
+  h1 {
+    font-size: 24px;
+    color: #333;
+  }
+  
+  p {
+    font-size: 16px;
+    color: #666;
+  }
+  
+  h2 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+  
+  /* Table styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  /* Button styles */
+  button {
+    padding: 5px 10px;
+    margin-left: 10px;
+    cursor: pointer;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 3px;
+  }
+
+  label {
+    display: inline-block;
+    width: 100px;
+  }
+  
+  /* Adjust the button styles for better visibility on hover */
+  button:hover {
+    background-color: #45a049;
+  }  

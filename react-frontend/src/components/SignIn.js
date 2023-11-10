@@ -1,38 +1,37 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink } from 'react-router-dom';
 import axios from 'axios';
 import './SignIn.css';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [loginStatus, setLoginStatus] = useState(null); // null: initial state, true: success, false: failure
-  const history = useNavigate();
+  const [loginStatus, setLoginStatus] = useState(null);
+  const navigate = useNavigate();
 
   const handleSignIn = async () => {
     try {
-      // Log email and password before making the API call
       console.log('Email and password being sent:', { email, password });
   
       const response = await axios.post('http://localhost:8081/signin', { email, password });
   
       console.log('Response data:', response.data);
-      // Assuming the backend returns user type in the response
+
+      const userid = response.data.userid;
       const userType = response.data.user_type;
+      const username = response.data.username;
   
-      // Set login success status
+      console.log('Name, id and type recieved:', { userid, userType, username })
+
       setLoginStatus(true);
-  
-      /*if (userType === 'doctor') {
-        history.push('/doctor-dashboard');
-      } else if (userType === 'patient') {
-        history.push('/patient-dashboard');
-      }*/
+
+      if (userType === "doctor") {
+        navigate( "/doctor/" + username + "/" + userid );
+      } else if (userType === "patient") {
+        navigate( "/patient/" + username + "/" + userid );
+      }
     } catch (error) {
-      // Set login failure status
       setLoginStatus(false);
-  
-      // Handle authentication errors, e.g., show an error message
       console.error('Authentication failed:', error);
     }
   };  

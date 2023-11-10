@@ -17,6 +17,8 @@ func main() {
 	defer CloseDB()
 	CreateTables()
 
+	router := mux.NewRouter()
+
 	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Welcome to My Go Backend!")
 	}).Methods("GET")
@@ -24,7 +26,7 @@ func main() {
 	router.HandleFunc("/signup", SignUpHandler).Methods("POST")
 	router.HandleFunc("/signin", SignInHandler).Methods("POST")
 	//http.HandleFunc("/view",)
-	router.HandleFunc("/slots/view", viewAvailableSlotsHadler).Methods("GET")
+	router.HandleFunc("/slots/view", DoctorSlotsHandler).Methods("GET").Queries("doctorid", "{doctorid}")
 
 	http.ListenAndServe(":8081",
 		handlers.CORS(
@@ -52,7 +54,6 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log the received data
 	log.Printf("Received data: %+v", user)
 
 	err = SignUp(user)
@@ -80,7 +81,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("Received data: %+v", credentials)
+	//log.Printf("Received data: %+v", credentials)
 
 	user, err := SignIn(credentials.Email, credentials.Password)
 	if err != nil {
@@ -89,26 +90,74 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare the response
+	log.Printf("User data: %+v", user)
+
 	response := map[string]interface{}{
 		"message":   "Sign in successful",
+		"userid":    user.UserID,
 		"user_type": user.UserType,
+		"username":  user.UserName,
 	}
 
-	// Serialize the response to JSON
+	log.Printf("User data id: %+v", user.UserID)
+
 	jsonResponse, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
 		return
 	}
 
-	// Set the content type and write the response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
 }
 
-func SetDoctorSchedulHandler(writer http.ResponseWriter, request *http.Request) {
+func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	doctorIDStr, ok := vars["doctorid"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "Doctor ID not provided in the URL")
+		return
+	}
+  
+	// Convert doctorIDStr to an integer
+	doctorID, err := strconv.Atoi(doctorIDStr)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprintf(w, "Invalid doctor ID: %v", err)
+		return
+	}
+
+	log.Printf("ID received: %d", doctorID)
+
+	slots, err := FetchDoctorSlots(doctorID)
+	if err != nil {
+		// Log the error for debugging
+		log.Printf("Error fetching doctor slots: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching doctor slots: %v", err)
+		return
+	}
+
+	jsonData, err := json.Marshal(slots)
+	if err != nil {
+		// Log the error for debugging
+		log.Printf("Error creating JSON response: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error creating JSON response: %v", err)
+		return
+	}
+	log.Printf("JSON being sent: %s", jsonData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
+}
+
+func SetDoctorScheduleHandler(writer http.ResponseWriter, request *http.Request) {
 	newSlot := &Appointment{}
 	var appointmentRequest AppointmentRequest
 	decoder := json.NewDecoder(request.Body)
@@ -171,36 +220,6 @@ func ViewPatientAppointmentsHandler(writer http.ResponseWriter, request *http.Re
 	writer.Header().Set("Content-Type", "application/json")
 	writer.WriteHeader(http.StatusOK)
 	writer.Write(res)
-}
-
-func viewAvailableSlotsHadler(w http.ResponseWriter, r *http.Request) {
-	//geting slots from the database
-	r.ParseForm()
-
-	doctorId := r.FormValue("doctorID")
-
-	i, err := strconv.Atoi(doctorId)
-	if err != nil {
-		fmt.Println("Conversion error:", err)
-		return
-	}
-
-	slots, err := getAvailableSlotsFromDB(DB, i)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		fmt.Fprintf(w, "Error fetching available slots: %v", err)
-		return
-	}
-
-	jsonResponse, err := json.Marshal(slots)
-	if err != nil {
-		http.Error(w, "Failed to create JSON response", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(jsonResponse)
 }
 
 /*
