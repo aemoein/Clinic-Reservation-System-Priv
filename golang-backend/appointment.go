@@ -1,8 +1,8 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
+	"log"
 	"time"
 )
 
@@ -10,9 +10,9 @@ type Appointment struct {
 	AppointmentID   int
 	DoctorID        int
 	PatientID       int
-	AppointmentDate time.Time
-	StartTime       time.Time
-	EndTime         time.Time
+	AppointmentDate string
+	StartTime       string
+	EndTime         string
 }
 
 // 3. Doctor sets his schedule
@@ -58,12 +58,13 @@ func IsSlotOccupied(doctorID int, appointmentDate time.Time, startTime time.Time
 	return count > 0, nil
 }
 
-func getAvailableSlotsFromDB(db *sql.DB, doctorID int) ([]Appointment, error) {
-	// Define the query to select available slots for a specific doctor
-	query := "SELECT * FROM appointments WHERE doctor_id = ?"
-
-	// Execute the query and retrieve the rows
-	rows, err := db.Query(query, doctorID)
+func FetchDoctorSlots(doctorID int) ([]Appointment, error) {
+	rows, err := DB.Query(`
+		SELECT appointment_id, IFNULL(patient_id, 0) as patient_id, 
+		       appointment_date, start_time, end_time 
+		FROM appointments 
+		WHERE doctor_id = ?
+	`, doctorID)
 	if err != nil {
 		return nil, err
 	}
@@ -71,18 +72,19 @@ func getAvailableSlotsFromDB(db *sql.DB, doctorID int) ([]Appointment, error) {
 
 	var slots []Appointment
 
-	// Iterate over the rows and scan the results into the slots slice
 	for rows.Next() {
 		var slot Appointment
-		err := rows.Scan(&slot.AppointmentID, &slot.DoctorID, &slot.PatientID, &slot.AppointmentDate, &slot.StartTime, &slot.EndTime)
+
+		err := rows.Scan(&slot.AppointmentID, &slot.PatientID,
+			&slot.AppointmentDate, &slot.StartTime, &slot.EndTime)
 		if err != nil {
 			return nil, err
 		}
-		slots = append(slots, slot)
-	}
 
-	if err := rows.Err(); err != nil {
-		return nil, err
+		slots = append(slots, slot)
+
+		// Print the fetched data in the console
+		log.Printf("Fetched Data: %+v\n", slot)
 	}
 
 	return slots, nil

@@ -17,22 +17,22 @@ const Doctor = () => {
 
   const fetchDoctorSlots = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/slots/view', {
-        params: { doctorid: userid },
-      });
-  
-      if (Array.isArray(response.data)) {
-        setSlots(response.data);
-      } else {
-        console.error('Invalid data format for doctor slots:', response.data);
-      }
+        const response = await axios.get('http://localhost:8081/slots/view', {
+            params: { doctorid: userid },
+        });
+
+        if (Array.isArray(response.data)) {
+            console.log("received data:", response.data);
+            setSlots(response.data);
+        } else {
+            console.error('Invalid data format for doctor slots:', response.data);
+        }
     } catch (error) {
-      console.error('Error fetching doctor slots:', error);
+        console.error('Error fetching doctor slots:', error);
     }
-  };  
+};
 
   useEffect(() => {
-    // Fetch doctor's slots when the component mounts
     fetchDoctorSlots();
   }, [username]);
 
@@ -83,10 +83,10 @@ const Doctor = () => {
         </thead>
         <tbody>
           {slots.map((slot) => (
-            <tr key={slot.id}>
-              <td>{slot.date}</td>
-              <td>{slot.startTime}</td>
-              <td>{slot.endTime}</td>
+            <tr key={slot.AppointmentID}>
+              <td>{slot.AppointmentDate}</td>
+              <td>{slot.StartTime}</td>
+              <td>{slot.EndTime}</td>
               <td>
                 <button onClick={() => handleEdit(slot.id)}>Edit</button>
                 <button onClick={() => handleCancel(slot.id)}>Cancel</button>
@@ -101,16 +101,16 @@ const Doctor = () => {
       <form>
         <label>
           Date:
-          <input type="date" name="date" value={newSlot.date} onChange={handleInputChange} />
         </label>
+        <input type="date" name="date" value={newSlot.date} onChange={handleInputChange} />
         <label>
           Start Time:
-          <input type="time" name="startTime" value={newSlot.startTime} onChange={handleInputChange} />
         </label>
+        <input type="time" name="startTime" value={newSlot.startTime} onChange={handleInputChange} />
         <label>
           End Time:
-          <input type="time" name="endTime" value={newSlot.endTime} onChange={handleInputChange} />
         </label>
+        <input type="time" name="endTime" value={newSlot.endTime} onChange={handleInputChange} />
         <button type="button" onClick={handleAddSlot}>
           Add Slot
         </button>
