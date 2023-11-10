@@ -3,20 +3,19 @@ package main
 import (
 	"fmt"
 	"log"
-	"time"
 )
 
 type Appointment struct {
-	AppointmentID   int
-	DoctorID        int
-	PatientID       int
-	AppointmentDate string
-	StartTime       string
-	EndTime         string
+	AppointmentID   int    `json:"appointment_id"`
+	DoctorID        int    `json:"doctor_id"`
+	PatientID       int    `json:"patient_id"`
+	AppointmentDate string `json:"appointment_date"`
+	StartTime       string `json:"start_time"`
+	EndTime         string `json:"end_time"`
 }
 
 // 3. Doctor sets his schedule
-func SetDoctorSchedule(doctorID int, appointmentDate time.Time, startTime time.Time, endTime time.Time) error {
+func SetDoctorSchedule(doctorID int, appointmentDate, startTime, endTime string) error {
 	// Check if the slot is already occupied
 	isSlotOccupied, err := IsSlotOccupied(doctorID, appointmentDate, startTime, endTime)
 	if err != nil {
@@ -29,8 +28,8 @@ func SetDoctorSchedule(doctorID int, appointmentDate time.Time, startTime time.T
 
 	// If the slot is not occupied, insert the new slot
 	_, err = DB.Exec(`
-		INSERT INTO appointments (doctor_id, appointment_date, start_time, end_time) 
-		VALUES (?, ?, ?, ?)
+		INSERT INTO appointments (doctor_id, appointment_date, start_time, end_time, patient_id) 
+		VALUES (?, ?, ?, ?, NULL)
 	`, doctorID, appointmentDate, startTime, endTime)
 
 	if err != nil {
@@ -41,7 +40,7 @@ func SetDoctorSchedule(doctorID int, appointmentDate time.Time, startTime time.T
 }
 
 // IsSlotOccupied checks if the slot is already occupied
-func IsSlotOccupied(doctorID int, appointmentDate time.Time, startTime time.Time, endTime time.Time) (bool, error) {
+func IsSlotOccupied(doctorID int, appointmentDate, startTime, endTime string) (bool, error) {
 	var count int
 	err := DB.QueryRow(`
 		SELECT COUNT(*) 

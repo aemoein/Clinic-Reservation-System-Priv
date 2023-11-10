@@ -25,8 +25,10 @@ func main() {
 
 	router.HandleFunc("/signup", SignUpHandler).Methods("POST")
 	router.HandleFunc("/signin", SignInHandler).Methods("POST")
-	//http.HandleFunc("/view",)
-	router.HandleFunc("/slots/view", DoctorSlotsHandler).Methods("GET").Queries("doctorid", "{doctorid}")
+	router.HandleFunc("/slots/view", ViewDoctorSlotsHandler).Methods("GET").Queries("doctorid", "{doctorid}")
+	router.HandleFunc("/slots/add", SetDoctorScheduleHandler).Methods("POST")
+	router.HandleFunc("/cancelAppiontment", CancelAppointmentHandler).Methods("PUT").Queries("appointmentid", "{appointmentid}")
+	router.HandleFunc("/viewReservations", ViewPatientAppointmentsHandler).Methods("GET").Queries("patientid", "{patientid}")
 
 	http.ListenAndServe(":8081",
 		handlers.CORS(
@@ -34,13 +36,6 @@ func main() {
 			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 			handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 		)(router))
-	r := mux.NewRouter()
-
-	http.HandleFunc("/AddSlot/{DId}/{APTime}/{STime}/{ETime}", SetDoctorSchedulHandler).Methods("POST")
-	http.HandleFunc("/CancelAppiontment/{APId}", CancelAppiontmentHandler).Methods("DELETE")
-	http.HandleFunc("/reviewReservations", ViewPatientAppointmentsHandler).Methods("GET")
-	http.Handle("/", r)
-	http.ListenAndServe(":8080", nil)
 }
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,8 +76,6 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//log.Printf("Received data: %+v", credentials)
-
 	user, err := SignIn(credentials.Email, credentials.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -112,7 +105,7 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonResponse)
 }
 
-func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
+func ViewDoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	doctorIDStr, ok := vars["doctorid"]
 	if !ok {
@@ -120,8 +113,7 @@ func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Doctor ID not provided in the URL")
 		return
 	}
-  
-	// Convert doctorIDStr to an integer
+
 	doctorID, err := strconv.Atoi(doctorIDStr)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -133,7 +125,6 @@ func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 
 	slots, err := FetchDoctorSlots(doctorID)
 	if err != nil {
-		// Log the error for debugging
 		log.Printf("Error fetching doctor slots: %v", err)
 
 		w.WriteHeader(http.StatusInternalServerError)
@@ -143,7 +134,6 @@ func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 
 	jsonData, err := json.Marshal(slots)
 	if err != nil {
-		// Log the error for debugging
 		log.Printf("Error creating JSON response: %v", err)
 
 		w.WriteHeader(http.StatusInternalServerError)
@@ -157,69 +147,113 @@ func DoctorSlotsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(jsonData)
 }
 
-func SetDoctorScheduleHandler(writer http.ResponseWriter, request *http.Request) {
-	newSlot := &Appointment{}
-	var appointmentRequest AppointmentRequest
-	decoder := json.NewDecoder(request.Body)
-	err := decoder.Decode(&appointmentRequest)
+func SetDoctorScheduleHandler(w http.ResponseWriter, r *http.Request) {
+	var newSlot Appointment
+	err := json.NewDecoder(r.Body).Decode(&newSlot)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		log.Printf("Error decoding request body: %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	r.ParseForm(request, SetDoctorSchedule())
-	slot := newSlot.SetDoctorSchedul(appointmentRequest.DoctorID, appointmentRequest.AppointmentDate, appointmentRequest.start_time, appointmentRequest.end_time)
-	res, _ := json.Marshal(slot)
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusCreated)
-	writer.Write(res)
+
+	log.Printf("Received payload: %+v", newSlot)
+
+	if newSlot.DoctorID <= 0 || newSlot.AppointmentDate == "" || newSlot.StartTime == "" || newSlot.EndTime == "" {
+		http.Error(w, "Invalid slot data", http.StatusBadRequest)
+		return
+	}
+
+	err = SetDoctorSchedule(newSlot.DoctorID, newSlot.AppointmentDate, newSlot.StartTime, newSlot.EndTime)
+	if err != nil {
+		log.Printf("Error adding slot: %v", err)
+		http.Error(w, "Failed to add slot", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	fmt.Fprint(w, "Slot added successfully")
 }
 
-func CancelAppointmentHandler(writer http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	AppointmentId := vars["APId"]
-
-	id, err := strconv.Atoi(AppointmentId)
-	if err != nil {
-		http.Error(writer, "Invalid appointment ID", http.StatusBadRequest)
+func CancelAppointmentHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	AppointmentIdStr, ok := vars["appointmentid"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "appointment id not provided in the URL")
 		return
 	}
 
-	var appointmentRequest AppointmentRequest
-	err = json.NewDecoder(request.Body).Decode(&appointmentRequest)
+	AppointmentId, err := strconv.Atoi(AppointmentIdStr)
 	if err != nil {
-		http.Error(writer, "Error decoding request body", http.StatusBadRequest)
+		http.Error(w, "Invalid appointment ID", http.StatusBadRequest)
 		return
 	}
 
-	res, _ := json.Marshal(CancelAppointment(int(id)))
+	log.Printf("ID received: %d", AppointmentId)
 
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusNoContent)
-	writer.Write(res)
+	appointments := CancelAppointment(AppointmentId)
+	if err != nil {
+		log.Printf("Error fetching patient appointments: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching patient appointments: %v", err)
+		return
+	}
+
+	jsonData, err := json.Marshal(appointments)
+	if err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error creating JSON response: %v", err)
+		return
+	}
+	log.Printf("JSON being sent: %s", jsonData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
 }
 
-func ViewPatientAppointmentsHandler(writer http.ResponseWriter, request *http.Request) {
-	reservations := mux.Vars(request)
-	patientID := vars["PId"]
-
-	id, err := strconv.Atoi(patientID)
-	if err != nil {
-		http.Error(writer, "Invalid Patient ID", http.StatusBadRequest)
+func ViewPatientAppointmentsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	patientIDStr, ok := vars["patientid"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		fmt.Fprint(w, "appointment id not provided in the URL")
 		return
 	}
 
-	var appointmentRequest AppointmentRequest
-	err = json.NewDecoder(request.Body).Decode(&appointmentRequest)
+	patientID, err := strconv.Atoi(patientIDStr)
 	if err != nil {
-		http.Error(writer, "Error decoding request body", http.StatusBadRequest)
+		http.Error(w, "Invalid Patient ID", http.StatusBadRequest)
 		return
 	}
 
-	res, _ := json.Marshal(ViewPatientAppointments(patientID))
+	log.Printf("patient ID received: %d", patientID)
 
-	writer.Header().Set("Content-Type", "application/json")
-	writer.WriteHeader(http.StatusOK)
-	writer.Write(res)
+	appointments, err := ViewPatientAppointments(patientID)
+	if err != nil {
+		log.Printf("Error fetching patient appointments: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error fetching patient appointments: %v", err)
+		return
+	}
+
+	jsonData, err := json.Marshal(appointments)
+	if err != nil {
+		log.Printf("Error creating JSON response: %v", err)
+
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprintf(w, "Error creating JSON response: %v", err)
+		return
+	}
+	log.Printf("JSON being sent: %s", jsonData)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(jsonData)
 }
 
 /*

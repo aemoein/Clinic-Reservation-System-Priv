@@ -10,9 +10,11 @@ const Doctor = () => {
 
   const [slots, setSlots] = useState([]);
   const [newSlot, setNewSlot] = useState({
-    date: '',
-    startTime: '',
-    endTime: '',
+    doctor_id: Number(userid),
+    patient_id: 0,
+    appointment_date: '',
+    start_time: '',
+    end_time: '',
   });
 
   const fetchDoctorSlots = async () => {
@@ -57,7 +59,8 @@ const Doctor = () => {
   const handleAddSlot = async () => {
     try {
       // Send a request to the server to add the new slot
-      await axios.post(`http://localhost:8081/slots/add?doctorID=${userid}`, newSlot);
+      console.log('new slot sent: ', newSlot)
+      await axios.post(`http://localhost:8081/slots/add`, newSlot);
       // Refresh the list of slots after adding a new one
       fetchDoctorSlots();
       // Clear the input fields
@@ -83,10 +86,10 @@ const Doctor = () => {
         </thead>
         <tbody>
           {slots.map((slot) => (
-            <tr key={slot.AppointmentID}>
-              <td>{slot.AppointmentDate}</td>
-              <td>{slot.StartTime}</td>
-              <td>{slot.EndTime}</td>
+            <tr key={slot.appointment_id}>
+              <td>{slot.appointment_date}</td>
+              <td>{slot.start_time}</td>
+              <td>{slot.end_time}</td>
               <td>
                 <button onClick={() => handleEdit(slot.id)}>Edit</button>
                 <button onClick={() => handleCancel(slot.id)}>Cancel</button>
@@ -99,21 +102,21 @@ const Doctor = () => {
       {/* Form to add a new slot */}
       <h2>Add New Slot</h2>
       <form>
-        <label>
-          Date:
-        </label>
-        <input type="date" name="date" value={newSlot.date} onChange={handleInputChange} />
-        <label>
-          Start Time:
-        </label>
-        <input type="time" name="startTime" value={newSlot.startTime} onChange={handleInputChange} />
-        <label>
-          End Time:
-        </label>
-        <input type="time" name="endTime" value={newSlot.endTime} onChange={handleInputChange} />
-        <button type="button" onClick={handleAddSlot}>
-          Add Slot
-        </button>
+            <label>
+                Date:
+            </label>
+            <input type="date" name="appointment_date" value={newSlot.appointment_date} onChange={handleInputChange} />
+            <label>
+                Start Time:
+            </label>
+            <input type="time" name="start_time" value={newSlot.start_time} onChange={handleInputChange} />
+            <label>
+                End Time:
+            </label>
+            <input type="time" name="end_time" value={newSlot.end_time} onChange={handleInputChange} />
+            <button type="button" onClick={handleAddSlot}>
+                Add Slot
+            </button>
       </form>
     </div>
   );
