@@ -64,7 +64,6 @@ const Patient = () => {
 
   const handleCancel = async (appointmentId) => {
     try {
-      // Send a request to the server to cancel the appointment
       console.log(`Cancel appointment with ID ${appointmentId}`);
       await axios.put(`http://localhost:8081/appointments/cancel?appointmentid=${appointmentId}`, {
         patient_id: Number(userid),
@@ -72,7 +71,6 @@ const Patient = () => {
 
       setSelectedDoctor('')
       setSelectedSlot('')
-      // Refresh the list of patient appointments after cancellation
       fetchPatientAppointments();
     } catch (error) {
       console.error('Error canceling appointment:', error);
@@ -118,7 +116,6 @@ const Patient = () => {
 
         setDoctorSlots(prevSlots => prevSlots.filter(slot => slot.appointment_id !== appointmentIdInt));
 
-        // Refresh the list of patient appointments after reservation
         fetchPatientAppointments();
     } catch (error) {
         console.error('Error reserving appointment:', error);

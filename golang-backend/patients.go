@@ -36,8 +36,12 @@ func ViewDoctorSlots(doctorID int, appointmentDate time.Time) ([]Appointment, er
 }
 
 func ReserveAppointment(appointmentID, patientID int) error {
-	// Update the patient ID for the given appointment
-	_, err := DB.Exec(`
+	doctorID, err := GetDoctorIDFromAppointment(appointmentID)
+	if err != nil {
+		return err
+	}
+
+	_, err = DB.Exec(`
         UPDATE appointments 
         SET patient_id = ? 
         WHERE appointment_id = ?
@@ -46,6 +50,8 @@ func ReserveAppointment(appointmentID, patientID int) error {
 	if err != nil {
 		return err
 	}
+
+	produceKafkaMessage(doctorID, patientID, "ReservationCreated")
 
 	return nil
 }
