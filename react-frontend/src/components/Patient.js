@@ -11,6 +11,8 @@ const Patient = () => {
   const [doctorSlots, setDoctorSlots] = useState([]);
   const [selectedSlot, setSelectedSlot] = useState('');
   const [patientAppointments, setPatientAppointments] = useState([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [appointmentToEdit, setAppointmentToEdit] = useState('');
 
   const fetchDoctors = async () => {
     try {
@@ -46,37 +48,36 @@ const Patient = () => {
     fetchPatientAppointments();
   }, [username]);
 
-  const handleEdit = async (appointmentId) => {
-    try {
-        // Send a request to the server to cancel the appointment
-        console.log(`Cancel appointment with ID ${appointmentId}`);
-        await axios.post('http://localhost:8081/appointments/cancel', {
-          appointment_id: appointmentId,
-          patient_id: Number(userid),
-        });
-  
-        // Refresh the list of patient appointments after cancellation
-        fetchPatientAppointments();
-      } catch (error) {
-        console.error('Error canceling appointment:', error);
-      }
+  const handleStartEdit = (appointmentId) => {
+
+    setAppointmentToEdit(appointmentId);
+    setIsEditing(true);
+
+  };
+
+  const handleStoptEdit = () => {
+
+    setAppointmentToEdit('');
+    setIsEditing(false);
+    
   };
 
   const handleCancel = async (appointmentId) => {
     try {
       // Send a request to the server to cancel the appointment
       console.log(`Cancel appointment with ID ${appointmentId}`);
-      await axios.post('http://localhost:8081/appointments/cancel', {
-        appointment_id: appointmentId,
+      await axios.put(`http://localhost:8081/appointments/cancel?appointmentid=${appointmentId}`, {
         patient_id: Number(userid),
       });
 
+      setSelectedDoctor('')
+      setSelectedSlot('')
       // Refresh the list of patient appointments after cancellation
       fetchPatientAppointments();
     } catch (error) {
       console.error('Error canceling appointment:', error);
     }
-  };
+  };  
 
   const fetchDoctorSlots = async (doctorId) => {
     try {
@@ -110,13 +111,11 @@ const Patient = () => {
     try {
         const appointmentIdInt = parseInt(selectedSlot, 10);
 
-        // Send a request to the server to reserve the selected slot
         await axios.post('http://localhost:8081/appointments/reserve', {
             appointment_id: appointmentIdInt,
             patient_id: Number(userid),
         });
 
-        // Remove the reserved slot from the dropdown menu
         setDoctorSlots(prevSlots => prevSlots.filter(slot => slot.appointment_id !== appointmentIdInt));
 
         // Refresh the list of patient appointments after reservation
@@ -124,7 +123,22 @@ const Patient = () => {
     } catch (error) {
         console.error('Error reserving appointment:', error);
     }
-};
+  };
+
+  const handleEdit = async () => {
+    try {
+
+        handleReserve();
+        handleCancel(appointmentToEdit);
+
+      fetchPatientAppointments();
+    } catch (error) {
+      console.error('Error editing appointment:', error);
+    }
+
+    setAppointmentToEdit(null);
+    setIsEditing(false);
+  };  
    
   useEffect(() => {
     fetchDoctors();
@@ -154,44 +168,86 @@ const Patient = () => {
               <td>{appointment.end_time}</td>
               <td>{appointment.doctor_name}</td>
               <td>
-                <button onClick={() => handleEdit(appointment.appointment_id)}>Edit</button>
+                <button onClick={() => handleStartEdit(appointment.appointment_id)}>Edit</button>
                 <button onClick={() => handleCancel(appointment.appointment_id)}>Cancel</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+      {!isEditing && (
+        <div>
+            <h2>Make a Reservation</h2>
+            <form>
+                <label>
+                Select a Doctor:
+                <select value={selectedDoctor} onChange={handleDoctorChange}>
+                    <option value="" disabled>Select a doctor</option>
+                    {doctors.map((doctor) => (
+                    <option key={doctor.doctor_id} value={doctor.doctor_id}>
+                        {doctor.doctor_name}
+                    </option>
+                    ))}
+                </select>
+                </label>
 
-      <h2>Make a Reservation</h2>
-      <form>
-        <label>
-          Select a Doctor:
-          <select value={selectedDoctor} onChange={handleDoctorChange}>
-            <option value="" disabled>Select a doctor</option>
-            {doctors.map((doctor) => (
-              <option key={doctor.doctor_id} value={doctor.doctor_id}>
-                {doctor.doctor_name}
-              </option>
-            ))}
-          </select>
-        </label>
+                <label>
+                Select a Slot:
+                <select value={selectedSlot} onChange={handleSlotChange}>
+                    <option value="" disabled>Select a slot</option>
+                    {doctorSlots.map((slot) => (
+                    <option key={slot.appointment_id} value={slot.appointment_id}>
+                        {slot.appointment_date} - {slot.start_time} to {slot.end_time}
+                    </option>
+                    ))}
+                </select>
+                </label>
 
-        <label>
-          Select a Slot:
-          <select value={selectedSlot} onChange={handleSlotChange}>
-            <option value="" disabled>Select a slot</option>
-            {doctorSlots.map((slot) => (
-              <option key={slot.appointment_id} value={slot.appointment_id}>
-                {slot.appointment_date} - {slot.start_time} to {slot.end_time}
-              </option>
-            ))}
-          </select>
-        </label>
+                <button type="button" onClick={handleReserve}>
+                Reserve Appointment
+                </button>
+            </form>
+         </div>
+      )}
+      { isEditing && (
+        <div>
+            <h2>Update Reservations</h2>
+            <form>
+                <label>
+                    Select a Doctor:
+                    <select value={selectedDoctor} onChange={handleDoctorChange}>
+                        <option value="" disabled>Select a doctor</option>
+                        {doctors.map((doctor) => (
+                            <option key={doctor.doctor_id} value={doctor.doctor_id}>
+                                {doctor.doctor_name}
+                            </option>
+                        ))}
+                    </select>
+                </label>
 
-        <button type="button" onClick={handleReserve}>
-          Reserve Appointment
-        </button>
-      </form>
+
+                <label>
+                    Select a Slot:
+                    <select value={selectedSlot} onChange={handleSlotChange}>
+                        <option value="" disabled>Select a slot</option>
+                        {doctorSlots.map((slot) => (
+                            <option key={slot.appointment_id} value={slot.appointment_id}>
+                                {slot.appointment_date} - {slot.start_time} to {slot.end_time}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+
+                <button type="button" onClick={handleEdit}>
+                    Update Appointment
+                </button>
+
+                <button type="button" onClick={handleStoptEdit}>
+                    Cancel
+                </button>
+            </form>
+        </div>
+      )}
     </div>
   );
 };

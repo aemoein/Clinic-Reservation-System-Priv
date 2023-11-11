@@ -42,3 +42,18 @@ func SignUp(user User) error {
 
 	return err
 }
+
+func GetUsernameByID(userID int) (string, error) {
+	var username string
+
+	row := DB.QueryRow("SELECT name FROM users WHERE userid = ?", userID)
+	err := row.Scan(&username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", fmt.Errorf("user not found for ID: %d", userID)
+		}
+		return "", err
+	}
+
+	return username, nil
+}

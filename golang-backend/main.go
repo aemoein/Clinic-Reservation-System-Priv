@@ -288,7 +288,7 @@ func ViewPatientAppointmentsHandler(w http.ResponseWriter, r *http.Request) {
 	patientIDStr, ok := vars["patientid"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "appointment id not provided in the URL")
+		fmt.Fprint(w, "patient id not provided in the URL")
 		return
 	}
 
