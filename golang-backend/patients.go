@@ -57,25 +57,53 @@ func ReserveAppointment(appointmentID, patientID int) error {
 }
 
 // 5- Patient can update his appointment by change the doctor or the slot.
-func UpdateAppointment(appointmentID, newDoctorID int, appointmentDate, newStartTime, newEndTime string) error {
-	isSlotOccupied, err := IsSlotOccupied(newDoctorID, appointmentDate, newStartTime, newEndTime)
+func UpdateAppointment(appointmentID, oldAppointmentID int) error {
+	var count int
+	err := DB.QueryRow(`
+		SELECT COUNT(*) 
+		FROM appointments 
+		WHERE appointment_id = ? AND patient_id IS NOT NULL
+	`, oldAppointmentID).Scan(&count)
+
 	if err != nil {
 		return err
 	}
 
-	if isSlotOccupied {
-		return fmt.Errorf("the new slot is already occupied")
+	if count == 0 {
+		return fmt.Errorf("appointment not found or already canceled")
+	}
+
+	doctorID, err := GetDoctorIDFromAppointment(appointmentID)
+	if err != nil {
+		return err
+	}
+
+	patientID, err := GetPatientIDFromAppointment(oldAppointmentID)
+	if err != nil {
+		return err
 	}
 
 	_, err = DB.Exec(`
 		UPDATE appointments 
-		SET doctor_id = ?, start_time = ?, end_time = ? 
+		SET patient_id = NULL 
 		WHERE appointment_id = ?
-	`, newDoctorID, newStartTime, newEndTime, appointmentID)
+	`, oldAppointmentID)
 
 	if err != nil {
 		return err
 	}
+
+	_, err = DB.Exec(`
+        UPDATE appointments 
+        SET patient_id = ? 
+        WHERE appointment_id = ?
+    `, patientID, appointmentID)
+
+	if err != nil {
+		return err
+	}
+
+	produceKafkaMessage(doctorID, patientID, "ReservationUpdated")
 
 	return nil
 }
@@ -97,6 +125,17 @@ func CancelAppointment(appointmentID int) error {
 		return fmt.Errorf("appointment not found or already canceled")
 	}
 
+	doctorID, err := GetDoctorIDFromAppointment(appointmentID)
+	if err != nil {
+		return err
+	}
+
+	patientID, err := GetPatientIDFromAppointment(appointmentID)
+	if err != nil {
+
+		return err
+	}
+
 	_, err = DB.Exec(`
 		UPDATE appointments 
 		SET patient_id = NULL 
@@ -106,6 +145,8 @@ func CancelAppointment(appointmentID int) error {
 	if err != nil {
 		return err
 	}
+
+	produceKafkaMessage(doctorID, patientID, "ReservationCancelled")
 
 	return nil
 }

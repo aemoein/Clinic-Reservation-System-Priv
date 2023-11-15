@@ -13,6 +13,7 @@ const HomePage = () => {
         <Link to="/signin" className="button">Sign In</Link>
         <Link to="/signup" className="button">Sign Up</Link>
       </div>
+      <Link to="/kafka" className="button">All Messages</Link>
     </div>
   );
 };

@@ -101,3 +101,18 @@ func GetDoctorIDFromAppointment(appointmentID int) (int, error) {
 
 	return doctorID, nil
 }
+
+func GetPatientIDFromAppointment(appointmentID int) (int, error) {
+	row := DB.QueryRow("SELECT patient_id FROM appointments WHERE appointment_id = ?", appointmentID)
+
+	var patientID int
+
+	if err := row.Scan(&patientID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("appointment not found")
+		}
+		return 0, err
+	}
+
+	return patientID, nil
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import './Patient.css';
 
@@ -124,9 +124,19 @@ const Patient = () => {
 
   const handleEdit = async () => {
     try {
+      const appointmentIdInt = parseInt(selectedSlot, 10);
 
-        handleReserve();
-        handleCancel(appointmentToEdit);
+      console.log('Sending request with data:', {
+        appointment_id: appointmentIdInt,
+        old_appointment_id: appointmentToEdit,
+      });  
+
+      await axios.post('http://localhost:8081/appointments/update', {
+          appointment_id: appointmentIdInt,
+          old_appointment_id: appointmentToEdit,
+      });
+
+      setDoctorSlots(prevSlots => prevSlots.filter(slot => slot.appointment_id !== appointmentIdInt));
 
       fetchPatientAppointments();
     } catch (error) {
@@ -146,6 +156,7 @@ const Patient = () => {
     <div>
       <h1>Hello, {username}</h1>
       <p>User Type: Patient</p>
+      <Link to="/" className="button">Log Out</Link>
       <h2>Your Appointments</h2>
       <table>
       <thead>
