@@ -5,11 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"reflect"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -29,9 +31,11 @@ func main() {
 	router.HandleFunc("/slots/view/empty", ViewEmptyDoctorSlotsHandler).Methods("GET").Queries("doctorid", "{doctorid}")
 	router.HandleFunc("/slots/add", SetDoctorScheduleHandler).Methods("POST")
 	router.HandleFunc("/appointments/reserve", ReserveAppointmentHandler).Methods("POST")
+	router.HandleFunc("/appointments/update", UpdateAppointmentHandler).Methods("POST")
 	router.HandleFunc("/appointments/cancel", CancelAppointmentHandler).Methods("PUT").Queries("appointmentid", "{appointmentid}")
 	router.HandleFunc("/appointments/view", ViewPatientAppointmentsHandler).Methods("GET").Queries("patientid", "{patientid}")
 	router.HandleFunc("/doctors", GetDoctorsHandler).Methods("GET")
+	router.HandleFunc("/ws", handleWebSocket)
 
 	http.ListenAndServe(":8081",
 		handlers.CORS(
@@ -242,6 +246,32 @@ func ReserveAppointmentHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Appointment reserved successfully")
 }
 
+func UpdateAppointmentHandler(w http.ResponseWriter, r *http.Request) {
+	var updateRequest struct {
+		AppointmentID    int `json:"appointment_id"`
+		OldAppointmentID int `json:"old_appointment_id"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&updateRequest); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		log.Printf("Error decoding JSON request: %v", err)
+		return
+	}
+	log.Printf("JSON request decoded successfully: %v", updateRequest)
+
+	// Call the function to reserve the appointment
+	if err := UpdateAppointment(updateRequest.AppointmentID, updateRequest.OldAppointmentID); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Printf("Error updating appointment: %v", err)
+		return
+	}
+
+	// Respond with success
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprint(w, "Appointment reserved successfully")
+}
+
 func CancelAppointmentHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	AppointmentIdStr, ok := vars["appointmentid"]
@@ -288,7 +318,7 @@ func ViewPatientAppointmentsHandler(w http.ResponseWriter, r *http.Request) {
 	patientIDStr, ok := vars["patientid"]
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, "appointment id not provided in the URL")
+		fmt.Fprint(w, "patient id not provided in the URL")
 		return
 	}
 
@@ -343,6 +373,45 @@ func GetDoctorsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(jsonResponse)
+}
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
+}
+
+func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer conn.Close()
+
+	messages := consumeOldKafkaMessages()
+
+	for _, message := range messages {
+		err = conn.WriteMessage(websocket.TextMessage, []byte(message))
+		if err != nil {
+			//fmt.Println("Error broadcasting:", err)
+			return
+		}
+	}
+	message := consumeKafkaMessages()
+	var oldMessage = message
+
+	for {
+		message := consumeKafkaMessages()
+		if !reflect.DeepEqual(message, oldMessage) {
+			err := conn.WriteMessage(websocket.TextMessage, message.Value)
+			if err != nil {
+				fmt.Println("Error broadcasting:", err)
+				return
+			}
+			oldMessage = message
+		}
+	}
 }
 
 /*

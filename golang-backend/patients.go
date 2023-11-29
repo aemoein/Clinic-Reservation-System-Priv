@@ -36,8 +36,12 @@ func ViewDoctorSlots(doctorID int, appointmentDate time.Time) ([]Appointment, er
 }
 
 func ReserveAppointment(appointmentID, patientID int) error {
-	// Update the patient ID for the given appointment
-	_, err := DB.Exec(`
+	doctorID, err := GetDoctorIDFromAppointment(appointmentID)
+	if err != nil {
+		return err
+	}
+
+	_, err = DB.Exec(`
         UPDATE appointments 
         SET patient_id = ? 
         WHERE appointment_id = ?
@@ -47,29 +51,59 @@ func ReserveAppointment(appointmentID, patientID int) error {
 		return err
 	}
 
+	produceKafkaMessage(doctorID, patientID, "ReservationCreated")
+
 	return nil
 }
 
 // 5- Patient can update his appointment by change the doctor or the slot.
-func UpdateAppointment(appointmentID, newDoctorID int, appointmentDate, newStartTime, newEndTime string) error {
-	isSlotOccupied, err := IsSlotOccupied(newDoctorID, appointmentDate, newStartTime, newEndTime)
+func UpdateAppointment(appointmentID, oldAppointmentID int) error {
+	var count int
+	err := DB.QueryRow(`
+		SELECT COUNT(*) 
+		FROM appointments 
+		WHERE appointment_id = ? AND patient_id IS NOT NULL
+	`, oldAppointmentID).Scan(&count)
+
 	if err != nil {
 		return err
 	}
 
-	if isSlotOccupied {
-		return fmt.Errorf("the new slot is already occupied")
+	if count == 0 {
+		return fmt.Errorf("appointment not found or already canceled")
+	}
+
+	doctorID, err := GetDoctorIDFromAppointment(appointmentID)
+	if err != nil {
+		return err
+	}
+
+	patientID, err := GetPatientIDFromAppointment(oldAppointmentID)
+	if err != nil {
+		return err
 	}
 
 	_, err = DB.Exec(`
 		UPDATE appointments 
-		SET doctor_id = ?, start_time = ?, end_time = ? 
+		SET patient_id = NULL 
 		WHERE appointment_id = ?
-	`, newDoctorID, newStartTime, newEndTime, appointmentID)
+	`, oldAppointmentID)
 
 	if err != nil {
 		return err
 	}
+
+	_, err = DB.Exec(`
+        UPDATE appointments 
+        SET patient_id = ? 
+        WHERE appointment_id = ?
+    `, patientID, appointmentID)
+
+	if err != nil {
+		return err
+	}
+
+	produceKafkaMessage(doctorID, patientID, "ReservationUpdated")
 
 	return nil
 }
@@ -91,6 +125,17 @@ func CancelAppointment(appointmentID int) error {
 		return fmt.Errorf("appointment not found or already canceled")
 	}
 
+	doctorID, err := GetDoctorIDFromAppointment(appointmentID)
+	if err != nil {
+		return err
+	}
+
+	patientID, err := GetPatientIDFromAppointment(appointmentID)
+	if err != nil {
+
+		return err
+	}
+
 	_, err = DB.Exec(`
 		UPDATE appointments 
 		SET patient_id = NULL 
@@ -101,33 +146,46 @@ func CancelAppointment(appointmentID int) error {
 		return err
 	}
 
+	produceKafkaMessage(doctorID, patientID, "ReservationCancelled")
+
 	return nil
 }
 
-// 7- Patients can view all his reservations.
-func ViewPatientAppointments(patientID int) ([]Appointment, error) {
-	rows, err := DB.Query(`
-		SELECT appointment_id, doctor_id, appointment_date, start_time, end_time 
-		FROM appointments 
-		WHERE patient_id = ?
-	`, patientID)
+type AppointmentWithName struct {
+	AppointmentID   int    `json:"appointment_id"`
+	DoctorID        int    `json:"doctor_id"`
+	PatientID       int    `json:"patient_id"`
+	AppointmentDate string `json:"appointment_date"`
+	StartTime       string `json:"start_time"`
+	EndTime         string `json:"end_time"`
+	DoctorName      string `json:"doctor_name"`
+}
 
+// 7- Patients can view all his reservations.
+func ViewPatientAppointments(patientID int) ([]AppointmentWithName, error) {
+	rows, err := DB.Query(`
+		SELECT a.appointment_id, a.doctor_id, a.patient_id, a.appointment_date, a.start_time, a.end_time, u.name as doctor_name
+		FROM appointments a
+		JOIN users u ON a.doctor_id = u.userid
+		WHERE a.patient_id = ?
+	`, patientID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var patientAppointments []Appointment
+	var appointments []AppointmentWithName
 
 	for rows.Next() {
-		var appointment Appointment
-		err := rows.Scan(&appointment.AppointmentID, &appointment.DoctorID, &appointment.AppointmentDate, &appointment.StartTime, &appointment.EndTime)
+		var appointment AppointmentWithName
+		err := rows.Scan(&appointment.AppointmentID, &appointment.DoctorID, &appointment.PatientID,
+			&appointment.AppointmentDate, &appointment.StartTime, &appointment.EndTime, &appointment.DoctorName)
 		if err != nil {
 			return nil, err
 		}
 
-		patientAppointments = append(patientAppointments, appointment)
+		appointments = append(appointments, appointment)
 	}
 
-	return patientAppointments, nil
+	return appointments, nil
 }

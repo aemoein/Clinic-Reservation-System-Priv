@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 )
@@ -26,7 +27,6 @@ func SetDoctorSchedule(doctorID int, appointmentDate, startTime, endTime string)
 		return fmt.Errorf("the slot is already occupied")
 	}
 
-	// If the slot is not occupied, insert the new slot
 	_, err = DB.Exec(`
 		INSERT INTO appointments (doctor_id, appointment_date, start_time, end_time, patient_id) 
 		VALUES (?, ?, ?, ?, NULL)
@@ -39,7 +39,6 @@ func SetDoctorSchedule(doctorID int, appointmentDate, startTime, endTime string)
 	return nil
 }
 
-// IsSlotOccupied checks if the slot is already occupied
 func IsSlotOccupied(doctorID int, appointmentDate, startTime, endTime string) (bool, error) {
 	var count int
 	err := DB.QueryRow(`
@@ -82,9 +81,38 @@ func FetchDoctorSlots(doctorID int) ([]Appointment, error) {
 
 		slots = append(slots, slot)
 
-		// Print the fetched data in the console
 		log.Printf("Fetched Data: %+v\n", slot)
 	}
 
 	return slots, nil
+}
+
+func GetDoctorIDFromAppointment(appointmentID int) (int, error) {
+	row := DB.QueryRow("SELECT doctor_id FROM appointments WHERE appointment_id = ?", appointmentID)
+
+	var doctorID int
+
+	if err := row.Scan(&doctorID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("appointment not found")
+		}
+		return 0, err
+	}
+
+	return doctorID, nil
+}
+
+func GetPatientIDFromAppointment(appointmentID int) (int, error) {
+	row := DB.QueryRow("SELECT patient_id FROM appointments WHERE appointment_id = ?", appointmentID)
+
+	var patientID int
+
+	if err := row.Scan(&patientID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("appointment not found")
+		}
+		return 0, err
+	}
+
+	return patientID, nil
 }

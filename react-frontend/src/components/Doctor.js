@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import './Doctor.css';
 
@@ -78,6 +78,8 @@ const Doctor = () => {
     <div>
       <h1>Hello, {username}</h1>
       <p>User Type: Doctor</p>
+      <Link to="/" className="button">Log Out</Link>
+      <Link to={`/Kafka/${userid}`} className="button">Messages</Link>
       <h2>My Slots</h2>
       <table>
         <thead>

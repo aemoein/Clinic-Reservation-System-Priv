@@ -7,6 +7,7 @@ import SignIn from './components/SignIn';
 import SignUp from './components/SignUp';
 import Doctor from './components/Doctor';
 import Patient from './components/Patient';
+import WebSocketComponent from './components/WebSocketComponent';
 
 function App() {
   return (
@@ -18,6 +19,8 @@ function App() {
           <Route path="/signup" element={<SignUp />} />
           <Route path="/doctor/:username/:userid" element={<Doctor />} />
           <Route path="/patient/:username/:userid" element={<Patient />} />
+          <Route path="/Kafka/:doctorid" element={<WebSocketComponent />} />
+          <Route path="/Kafka" element={<WebSocketComponent />} />
         </Routes>
     </Router>
   );
