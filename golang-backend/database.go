@@ -11,7 +11,7 @@ import (
 var DB *sql.DB
 
 func InitializeDB() error {
-	db, err := sql.Open("mysql", "user:12345@tcp(localhost:3306)/CRS")
+	db, err := sql.Open("mysql", "user:12345@tcp(mysql_db:3307)/CRS")
 	if err != nil {
 		return fmt.Errorf("failed to connect to the database: %w", err)
 	}
@@ -26,9 +26,13 @@ func InitializeDB() error {
 	return nil
 }
 
-/*
-	func CreateTables() error {
-		_, err := DB.Exec(`
+func CreateTables() error {
+	// Check if DB is initialized
+	if DB == nil {
+		return fmt.Errorf("database is not initialized")
+	}
+
+	_, err := DB.Exec(`
 			CREATE TABLE IF NOT EXISTS users (
 				userid INT AUTO_INCREMENT PRIMARY KEY,
 				name VARCHAR(50) NOT NULL,
@@ -37,11 +41,11 @@ func InitializeDB() error {
 				usertype ENUM('doctor', 'patient') NOT NULL
 			)
 		`)
-		if err != nil {
-			return fmt.Errorf("failed to create 'users' table: %w", err)
-		}
+	if err != nil {
+		return fmt.Errorf("failed to create 'users' table: %w", err)
+	}
 
-		_, err = DB.Exec(`
+	_, err = DB.Exec(`
 			CREATE TABLE IF NOT EXISTS appointments (
 				appointment_id INT AUTO_INCREMENT PRIMARY KEY,
 				doctor_id INT NOT NULL,
@@ -53,14 +57,13 @@ func InitializeDB() error {
 				FOREIGN KEY (patient_id) REFERENCES users(userid)
 			)
 		`)
-		if err != nil {
-			return fmt.Errorf("failed to create 'appointments' table: %w", err)
-		}
-
-		fmt.Println("Tables created successfully")
-		return nil
+	if err != nil {
+		return fmt.Errorf("failed to create 'appointments' table: %w", err)
 	}
-*/
+
+	fmt.Println("Tables created successfully")
+	return nil
+}
 
 func CloseDB() {
 	if DB != nil {
@@ -70,3 +73,5 @@ func CloseDB() {
 		fmt.Println("Disconnected from the database")
 	}
 }
+
+

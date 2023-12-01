@@ -15,9 +15,15 @@ import (
 )
 
 func main() {
-	InitializeDB()
+	if err := InitializeDB(); err != nil {
+		log.Fatal(err)
+	}
+
 	defer CloseDB()
-	CreateTables()
+
+	if err := CreateTables(); err != nil {
+		log.Fatal(err)
+	}
 
 	router := mux.NewRouter()
 
