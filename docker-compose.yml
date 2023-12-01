@@ -1,0 +1,76 @@
+version: '3'
+
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+
+  kafka:
+    build:
+      context: .
+      dockerfile: Dockerfile.kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: localhost
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+
+  mysql:
+    build:
+      context: .
+      dockerfile: Dockerfile.mysql
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: 12345
+      MYSQL_DATABASE: CRS
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 12345
+    ports:
+      - "3306:3306"
+    networks:
+      - mysql_network
+
+  golang_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.golang
+    container_name: golang_app
+    ports:
+      - "8081:8081"
+    networks:
+      - mysql_network
+    depends_on:
+      - mysql
+
+  react_app:
+    build:
+      context: .
+      dockerfile: Dockerfile.react
+    container_name: react_app
+    ports:
+      - "3000:3000"
+
+  kafka-producer:
+    image: wurstmeister/kafka
+    container_name: kafka-producer
+    command: ["kafka-console-producer.sh", "--broker-list=kafka:9092", "--topic=clinic_reservation"]
+    depends_on:
+      - kafka
+    stdin_open: true
+    tty: true
+
+  kafka-consumer:
+    image: wurstmeister/kafka
+    container_name: kafka-consumer
+    command: ["kafka-console-consumer.sh", "--bootstrap-server=kafka:9092", "--topic=clinic_reservation", "--from-beginning"]
+    depends_on:
+      - kafka
+    stdin_open: true
+    tty: true
+
+networks:
+  mysql_network:
+    driver: bridge

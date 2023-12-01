@@ -83,6 +83,8 @@ func SignInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Printf("User email recieved: %+v", credentials.Email)
+
 	user, err := SignIn(credentials.Email, credentials.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

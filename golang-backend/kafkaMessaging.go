@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/segmentio/kafka-go"
@@ -37,13 +38,22 @@ func produceKafkaMessage(doctorID int, patientID int, operation string) {
 	}
 
 	// Connect to Kafka and produce the JSON-formatted message
-	conn, _ := kafka.DialLeader(context.Background(), "tcp", brokerAddress, topic, 0)
+	conn, err := kafka.DialLeader(context.Background(), "tcp", brokerAddress, topic, 0)
+	if err != nil {
+		log.Println("Error connecting to Kafka:", err)
+		return
+	}
+
 	conn.SetWriteDeadline(time.Now().Add(time.Second * 3))
 	conn.WriteMessages(kafka.Message{Value: jsonData})
 }
 
 func consumeOldKafkaMessages() []string {
-	conn, _ := kafka.DialLeader(context.Background(), "tcp", brokerAddress, topic, 0)
+	conn, err := kafka.DialLeader(context.Background(), "tcp", brokerAddress, topic, 0)
+	if err != nil {
+		log.Println("Error connecting to Kafka:", err)
+	}
+
 	conn.SetReadDeadline(time.Now().Add(time.Second))
 
 	batch := conn.ReadBatch(1e3, 1e9)

@@ -1,0 +1,11 @@
+FROM wurstmeister/kafka
+
+EXPOSE 9092
+
+ENV KAFKA_ADVERTISED_HOST_NAME=localhost
+ENV KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+
+COPY create-topic.sh /create-topic.sh
+RUN chmod +x /create-topic.sh
+
+ENTRYPOINT ["/create-topic.sh"]
