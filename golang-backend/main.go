@@ -24,7 +24,6 @@ func main() {
 	if err := CreateTables(); err != nil {
 		log.Fatal(err)
 	}
-
 	router := mux.NewRouter()
 
 	router.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {

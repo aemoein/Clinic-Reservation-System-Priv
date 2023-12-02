@@ -4,13 +4,14 @@ FROM mysql:latest
 # Set the environment variables
 ENV MYSQL_ROOT_PASSWORD=12345
 ENV MYSQL_DATABASE=CRS
-ENV MYSQL_USER=user
-ENV MYSQL_PASSWORD=12345
+#ENV MYSQL_USER=user
+#ENV MYSQL_PASSWORD=12345
 
 # Copy the SQL scripts to initialize the database and create tables
-COPY ./init.sql /docker-entrypoint-initdb.d/
+#COPY ./init.sql /docker-entrypoint-initdb.d/
 
 # Expose the MySQL port
 EXPOSE 3306
 
 CMD ["mysqld"]
+

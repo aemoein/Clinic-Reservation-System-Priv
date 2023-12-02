@@ -1,3 +1,5 @@
+use CRS;
+
 CREATE TABLE IF NOT EXISTS users (
     userid INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -16,3 +18,5 @@ CREATE TABLE IF NOT EXISTS appointments (
     FOREIGN KEY (doctor_id) REFERENCES users(userid),
     FOREIGN KEY (patient_id) REFERENCES users(userid)
 );
+
+
