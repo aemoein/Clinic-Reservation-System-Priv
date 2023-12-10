@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
-import './Patient.css';
+import styles from './Patient.module.css';
 
 const Patient = () => {
   const { username, userid } = useParams();
@@ -153,13 +153,16 @@ const Patient = () => {
   }, [username]);
 
   return (
-    <div>
-      <h1>Hello, {username}</h1>
-      <p>User Type: Patient</p>
-      <Link to="/" className="button">Log Out</Link>
-      <h2>Your Appointments</h2>
-      <table>
-      <thead>
+    <div className={styles.container}>
+      <header className={styles.patientheader}>
+        <h1>Hello, {username}</h1>
+        <h2>User Type: Doctor</h2>
+        <div>
+          <Link to="/" className="button">Log Out</Link>
+        </div>
+      </header>
+      <table className={styles.table}>
+        <thead>
           <tr>
             <th>Date</th>
             <th>Start Time</th>
@@ -176,84 +179,87 @@ const Patient = () => {
               <td>{appointment.end_time}</td>
               <td>{appointment.doctor_name}</td>
               <td>
-                <button onClick={() => handleStartEdit(appointment.appointment_id)}>Edit</button>
-                <button onClick={() => handleCancel(appointment.appointment_id)}>Cancel</button>
+                <button onClick={() => handleStartEdit(appointment.appointment_id)} className={styles.patientbutton}>
+                  Edit
+                </button>
+                <button onClick={() => handleCancel(appointment.appointment_id)} className={styles.patientbutton}>
+                  Cancel
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
       {!isEditing && (
-        <div>
-            <h2>Make a Reservation</h2>
-            <form>
-                <label>
-                Select a Doctor:
-                <select value={selectedDoctor} onChange={handleDoctorChange}>
-                    <option value="" disabled>Select a doctor</option>
-                    {doctors.map((doctor) => (
-                    <option key={doctor.doctor_id} value={doctor.doctor_id}>
-                        {doctor.doctor_name}
-                    </option>
-                    ))}
-                </select>
-                </label>
+        <div className={styles.reserve}>
+          <h2 className={styles.h2}>Make a Reservation</h2>
+          <form>
+            <label className={styles.patientlabel}>
+              Select a Doctor:
+              <select value={selectedDoctor} onChange={handleDoctorChange} className={styles.patientinput}>
+                <option value="" disabled>Select a doctor</option>
+                {doctors.map((doctor) => (
+                  <option key={doctor.doctor_id} value={doctor.doctor_id}>
+                    {doctor.doctor_name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-                <label>
-                Select a Slot:
-                <select value={selectedSlot} onChange={handleSlotChange}>
-                    <option value="" disabled>Select a slot</option>
-                    {doctorSlots.map((slot) => (
-                    <option key={slot.appointment_id} value={slot.appointment_id}>
-                        {slot.appointment_date} - {slot.start_time} to {slot.end_time}
-                    </option>
-                    ))}
-                </select>
-                </label>
+            <label className={styles.patientlabel}>
+              Select a Slot:
+              <select value={selectedSlot} onChange={handleSlotChange} className={styles.patientinput}>
+                <option value="" disabled>Select a slot</option>
+                {doctorSlots.map((slot) => (
+                  <option key={slot.appointment_id} value={slot.appointment_id}>
+                    {slot.appointment_date} - {slot.start_time} to {slot.end_time}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-                <button type="button" onClick={handleReserve}>
-                Reserve Appointment
-                </button>
-            </form>
-         </div>
+            <button type="button" onClick={handleReserve} className={styles.reservebutton}>
+              Reserve Appointment
+            </button>
+          </form>
+        </div>
       )}
-      { isEditing && (
+      {isEditing && (
         <div>
-            <h2>Update Reservations</h2>
-            <form>
-                <label>
-                    Select a Doctor:
-                    <select value={selectedDoctor} onChange={handleDoctorChange}>
-                        <option value="" disabled>Select a doctor</option>
-                        {doctors.map((doctor) => (
-                            <option key={doctor.doctor_id} value={doctor.doctor_id}>
-                                {doctor.doctor_name}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+          <h2 className={styles.h2}>Update Reservations</h2>
+          <form>
+            <label className={styles.patientlabel}>
+              Select a Doctor:
+              <select value={selectedDoctor} onChange={handleDoctorChange} className={styles.select}>
+                <option value="" disabled>Select a doctor</option>
+                {doctors.map((doctor) => (
+                  <option key={doctor.doctor_id} value={doctor.doctor_id}>
+                    {doctor.doctor_name}
+                  </option>
+                ))}
+              </select>
+            </label>
 
+            <label className={styles.patientlabel}>
+              Select a Slot:
+              <select value={selectedSlot} onChange={handleSlotChange} className={styles.select}>
+                <option value="" disabled>Select a slot</option>
+                {doctorSlots.map((slot) => (
+                  <option key={slot.appointment_id} value={slot.appointment_id}>
+                    {slot.appointment_date} - {slot.start_time} to {slot.end_time}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-                <label>
-                    Select a Slot:
-                    <select value={selectedSlot} onChange={handleSlotChange}>
-                        <option value="" disabled>Select a slot</option>
-                        {doctorSlots.map((slot) => (
-                            <option key={slot.appointment_id} value={slot.appointment_id}>
-                                {slot.appointment_date} - {slot.start_time} to {slot.end_time}
-                            </option>
-                        ))}
-                    </select>
-                </label>
+            <button type="button" onClick={handleEdit} className={styles.button}>
+              Update Appointment
+            </button>
 
-                <button type="button" onClick={handleEdit}>
-                    Update Appointment
-                </button>
-
-                <button type="button" onClick={handleStoptEdit}>
-                    Cancel
-                </button>
-            </form>
+            <button type="button" onClick={handleStoptEdit} className={styles.button}>
+              Cancel
+            </button>
+          </form>
         </div>
       )}
     </div>

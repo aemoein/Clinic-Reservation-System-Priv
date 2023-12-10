@@ -1,13 +1,18 @@
 FROM golang:latest
-
-WORKDIR /go/src/app
+RUN mkdir /app
+WORKDIR /app
 
 COPY ./golang-backend .
 
-RUN go mod download
+ENV DB_HOST="dbcontainer"
+ENV PORT="3306"
+ENV USER="root"
+ENV PASSWORD="Ah123456789Ah"
+ENV DB_NAME="clinicDB2"
 
-RUN go build -o main .
+RUN go build -o /bin .
+RUN go mod download
 
 EXPOSE 8081
 
-CMD ["./main"]
+CMD [ "go","run","."]

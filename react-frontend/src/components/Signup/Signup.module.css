@@ -1,0 +1,101 @@
+.signuppage {
+  background-color: #f1f1f1;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  margin: 0 auto;
+  margin-top: 30px;
+  display: block;
+  margin-top: 100px;
+}
+
+h1 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.user-type-selection {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 5px;
+  margin-left: 60px;
+}
+
+.radiobtn {
+  display: flex;
+  width: auto;
+  margin-left: 15px;
+  margin-top: 15px;
+}
+
+.signuplabel {
+  margin: 0 10px;
+  display: block;
+  cursor: pointer;
+  text-align: left;
+}
+
+.signup-form {
+  display: flex;
+  flex-direction: column;
+}
+
+h2 {
+  text-align: center;
+}
+
+.signupinput {
+  width: 350px;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  text-align: left;
+}
+
+.radioinput {
+  padding: 5px;
+}
+
+.radiolabel {
+  padding: 10px;
+  margin-left: 40px;
+}
+
+.radiomain {
+  margin: 15px;
+}
+
+.signupbutton {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: #fff;
+  text-decoration: none;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  margin: 10px 0;
+  cursor: pointer;
+  text-align: center;
+}
+
+button:hover {
+  background-color: #0056b3;
+}  
+
+.signupLinks {
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  margin-bottom: 10px;
+}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import axios from 'axios';
-import './SignIn.css';
+import styles from './SignIn.module.css';
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -37,25 +37,25 @@ const SignIn = () => {
   };  
 
   return (
-    <div className="signin-page">
+    <div className={styles.signinpage}>
       <h1>Sign In</h1>
-      <div className="form">
-        <input
+      <div className={styles.signinform}>
+        <input className={styles.signininput}
           type="email"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <input
+        <input className={styles.signininput}
           type="password"
           placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <button onClick={handleSignIn}>Sign In</button>
+        <button className={styles.signinbutton} onClick={handleSignIn}>Sign In</button>
       </div>
       {loginStatus === true && <div className="success-message">Login successful!</div>}
-      {loginStatus === false && <div className="error-message">Login failed. Please try again.</div>}
+      {loginStatus === false && <div style={{ color: 'red', border: '1px solid red', padding: '10px', marginBottom: '10px' }}>Login Failed.</div>}
       <Link to="/signup">Don't have an account? Sign Up</Link>
     </div>
   );

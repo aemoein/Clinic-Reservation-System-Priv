@@ -2,12 +2,12 @@
 
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Home from './components/Home';
-import SignIn from './components/SignIn';
-import SignUp from './components/SignUp';
-import Doctor from './components/Doctor';
-import Patient from './components/Patient';
-import WebSocketComponent from './components/WebSocketComponent';
+import Home from './components/Home/Home';
+import SignIn from './components/SignIn/SignIn';
+import SignUp from './components/Signup/SignUp';
+import Doctor from './components/Doctor/Doctor';
+import Patient from './components/Patient/Patient';
+import WebSocketComponent from './components/WebSocket/WebSocketComponent';
 
 function App() {
   return (

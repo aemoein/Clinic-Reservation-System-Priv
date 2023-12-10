@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import './SignUp.css'
+import styles from './Signup.module.css'
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -40,56 +40,62 @@ const SignUp = () => {
   };
 
   return (
-    <div className="signup-page">
+    <div className={styles.signuppage}>
       <h2>Sign Up</h2>
       {error && <div style={{ color: 'red', border: '1px solid red', padding: '10px', marginBottom: '10px' }}>{error}</div>}
-      <form>
-        <label>
-          User Name:
-          <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
+      <form className={styles.form}>
+        <label className={styles.signuplabel}>
+          Full Name:
+          <input type="text" className={styles.signupinput} value={username} onChange={(e) => setUsername(e.target.value)} />
         </label>
         <br />
-        <label>
+        <label className={styles.signuplabel}>
           Email:
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <input type="email" className={styles.signupinput} value={email} onChange={(e) => setEmail(e.target.value)} />
         </label>
         <br />
-        <label>
+        <label className={styles.signuplabel}>
           Password:
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <input type="password" className={styles.signupinput} value={password} onChange={(e) => setPassword(e.target.value)} />
         </label>
         <br />
-        <label className="radiomain">
+
+        <label className={styles.radiomain}>
           User Type:
-          <div className="radio">
-            <label>
+          <div className={styles.radio}>
+            <label className={styles.radiolabel}>
+              Doctor
               <input
                 type="radio"
                 value="doctor"
                 checked={usertype === 'doctor'}
                 onChange={() => setUsertype('doctor')}
-                className="radiobtn"
+                className={styles.radiobtn}
               />
-              doctor
             </label>
-            <label>
+            <label className={styles.radiolabel}>
+              Patient
               <input
                 type="radio"
                 value="patient"
                 checked={usertype === 'patient'}
                 onChange={() => setUsertype('patient')}
-                className="radiobtn"
+                className={styles.radiobtn}
               />
-              patient
             </label>
           </div>
         </label>
         <br />
-        <button type="button" onClick={handleSignUp}>
-          Sign Up
-        </button>
+        <div className={styles.signupLinks}>
+          <button className={styles.signupbutton} type="button" onClick={handleSignUp}>
+            Sign Up
+          </button>
+        </div>
+
+        <div className={styles.signupLinks}>
+          <Link to="/signin">Already Signed Up? Login</Link>
+        </div>
       </form>
-      <Link to="/signin">Already Signed Up? Login</Link>
     </div>
   );
 };

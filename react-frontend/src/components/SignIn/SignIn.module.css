@@ -1,6 +1,6 @@
 /* src/components/SignIn.css */
 
-.signin-page {
+.signinpage {
     background-color: #f1f1f1;
     text-align: center;
     padding: 20px;
@@ -17,14 +17,14 @@
     margin-bottom: 10px;
   }
   
-  .form {
+  .signinform {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
   
-  input {
-    width: 100%;
+  .signininput {
+    width: 350px;
     padding: 10px;
     margin: 10px 0;
     border: 1px solid #ccc;

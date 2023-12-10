@@ -1,0 +1,114 @@
+/* Add this CSS to your Doctor component */
+
+/* Container styles */
+  .doctordiv {
+    margin: 20px;
+  }
+  
+  /* Header styles */
+  h1 {
+    font-size: 24px;
+    color: #333;
+  }
+  
+  p {
+    font-size: 16px;
+    color: #666;
+  }
+  
+  h2 {
+    font-size: 20px;
+    color: #333;
+    margin-bottom: 10px;
+  }
+
+  .doctorheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    color: #fff;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  .doctorbutton {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    margin: 10px 5px;
+    cursor: pointer;
+    text-align: center;
+    width: 100px;
+  }
+
+  .doctorlabel {
+    margin: 0 10px;
+    display: block;
+    cursor: pointer;
+    text-align: left;
+  }
+  
+  /* Adjust the button styles for better visibility on hover */
+  button:hover {
+    background-color: #0056b3;
+  }  
+
+  .doctorform {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .doctorinput {
+    width: 350px;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-align: left;
+  }
+
+  .addslot {
+    background-color: #f1f1f1;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    max-width: 400px;
+    margin: 0 auto;
+    margin-top: 30px;
+    display: block;
+    margin-top: 100px;
+  }
+
+  .addslotbutton {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: #fff;
+    text-decoration: none;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    margin: 10px 10px;
+    cursor: pointer;
+    text-align: center;
+  }
+
+  
