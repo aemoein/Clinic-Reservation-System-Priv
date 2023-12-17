@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"reflect"
 	"strconv"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -389,6 +388,47 @@ var upgrader = websocket.Upgrader{
 }
 
 func handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	// Log the WebSocket request
+	log.Printf("WebSocket connection requested from %s\n", r.RemoteAddr)
+
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer conn.Close()
+
+	// Get an initial set of messages from RabbitMQ
+	messages := consumeRabbitMQMessages()
+
+	for _, message := range messages {
+		err = conn.WriteMessage(websocket.TextMessage, []byte(string(message)))
+		if err != nil {
+			log.Println("Error broadcasting:", err)
+			return
+		}
+	}
+
+	// Continuously consume and broadcast messages
+	for {
+		message := consumeRabbitMQMessages()
+		err := conn.WriteMessage(websocket.TextMessage, []byte(message))
+		if err != nil {
+			log.Println("Error broadcasting:", err)
+			return
+		}
+	}
+}
+
+/*
+
+var upgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+	CheckOrigin:     func(r *http.Request) bool { return true },
+}
+
+func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println(err)
@@ -421,34 +461,4 @@ func handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*
-package main
-
-import (
-	"database/sql"
-	"fmt"
-
-	_ "github.com/go-sql-driver/mysql"
-)
-
-func main() {
-	db, err := sql.Open("mysql", "root:7R26@llg4grb$&@tcp(127.0.0.1:3306)/Clinical_Reservation")
-	if err != nil {
-		panic(err.Error())
-	}
-	defer db.Close()
-
-	insertUser, err := db.Exec("INSERT INTO users (username, email, password, user_type) VALUES (?, ?, ?, ?)", "Ahmed Elsayed", "ahmed33elsayed22@gmail.com", "12345", "patient")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	userID, _ := insertUser.LastInsertId()
-
-	_, err = db.Exec("INSERT INTO patients (user_id, full_name, date_of_birth, gender) VALUES (?, ?, ?, ?)", userID, "Ahmed Elsayed", "2002-06-13", "male")
-	if err != nil {
-		panic(err.Error())
-	}
-
-	fmt.Println("User added to both users and patients tables successfully!")
-}*/
+*/

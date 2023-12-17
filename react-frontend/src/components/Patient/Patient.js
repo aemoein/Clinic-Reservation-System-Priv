@@ -225,12 +225,12 @@ const Patient = () => {
         </div>
       )}
       {isEditing && (
-        <div>
+        <div className={styles.reserve}>
           <h2 className={styles.h2}>Update Reservations</h2>
           <form>
             <label className={styles.patientlabel}>
               Select a Doctor:
-              <select value={selectedDoctor} onChange={handleDoctorChange} className={styles.select}>
+              <select value={selectedDoctor} onChange={handleDoctorChange} className={styles.patientinput}>
                 <option value="" disabled>Select a doctor</option>
                 {doctors.map((doctor) => (
                   <option key={doctor.doctor_id} value={doctor.doctor_id}>
@@ -242,7 +242,7 @@ const Patient = () => {
 
             <label className={styles.patientlabel}>
               Select a Slot:
-              <select value={selectedSlot} onChange={handleSlotChange} className={styles.select}>
+              <select value={selectedSlot} onChange={handleSlotChange} className={styles.patientinput}>
                 <option value="" disabled>Select a slot</option>
                 {doctorSlots.map((slot) => (
                   <option key={slot.appointment_id} value={slot.appointment_id}>
@@ -252,11 +252,11 @@ const Patient = () => {
               </select>
             </label>
 
-            <button type="button" onClick={handleEdit} className={styles.button}>
+            <button type="button" onClick={handleEdit} className={styles.reservebutton}>
               Update Appointment
             </button>
 
-            <button type="button" onClick={handleStoptEdit} className={styles.button}>
+            <button type="button" onClick={handleStoptEdit} className={styles.reservebutton}>
               Cancel
             </button>
           </form>

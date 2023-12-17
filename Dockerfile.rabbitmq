@@ -1,0 +1,5 @@
+# Use the official RabbitMQ image from Docker Hub
+FROM rabbitmq:3-management
+
+# Expose the default ports for RabbitMQ (AMQP) and the Management UI
+EXPOSE 5672 15672
