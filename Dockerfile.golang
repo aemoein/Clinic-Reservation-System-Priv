@@ -1,20 +1,14 @@
-FROM golang:latest
-RUN mkdir /app
+FROM golang:1.21
+
 WORKDIR /app
 
-USER root
-COPY ./golang-backend .
+COPY go.mod go.sum ./golang-backend
 
-ENV DB_HOST="mysql-db"
-ENV PORT="3306"
-ENV USER="root"
-ENV PASSWORD="Ah123456789Ah"
-ENV DB_NAME="clinicDB2"
-
-RUN go build -o /bin .
 RUN go mod download
 
+COPY . .
 
-EXPOSE 8081
+RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping
 
-CMD [ "go","run","."]
+
+CMD [ "/docker-gs-ping" ]
