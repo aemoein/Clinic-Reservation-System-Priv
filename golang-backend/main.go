@@ -43,7 +43,7 @@ func main() {
 
 	http.ListenAndServe(":8081",
 		handlers.CORS(
-			handlers.AllowedOrigins([]string{"*"}),
+			handlers.AllowedOrigins([]string{"https://react-frontend-ahmed-sami-dev.apps.sandbox-m4.g2pi.p1.openshiftapps.com"}),
 			handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
 			handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"}),
 		)(router))
