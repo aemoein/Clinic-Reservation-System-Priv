@@ -2,6 +2,7 @@ FROM golang:latest
 RUN mkdir /app
 WORKDIR /app
 
+USER root
 COPY ./golang-backend .
 
 ENV DB_HOST="mysql-db"
@@ -12,6 +13,7 @@ ENV DB_NAME="clinicDB2"
 
 RUN go build -o /bin .
 RUN go mod download
+
 
 EXPOSE 8081
 
