@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, NavLink } from 'react-router-dom';
 import axios from 'axios';
 import styles from './SignIn.module.css';
+const API_BASE_URL = process.env.REACT_APP_API_PORT;
 
 const SignIn = () => {
   const [email, setEmail] = useState('');
@@ -13,7 +14,7 @@ const SignIn = () => {
     try {
       console.log('Email and password being sent:', { email, password });
   
-      const response = await axios.post('https://golang-backend-ahmed-sami-dev.apps.sandbox-m4.g2pi.p1.openshiftapps.com/signin', { email, password });
+      const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
   
       console.log('Response data:', response.data);
 

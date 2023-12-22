@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Doctor.module.css';
+const API_BASE_URL = process.env.REACT_APP_API_PORT;
 
 const Doctor = () => {
   const { username, userid } = useParams();
@@ -17,7 +18,7 @@ const Doctor = () => {
 
   const fetchDoctorSlots = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/slots/view', {
+      const response = await axios.post(`${API_BASE_URL}/slots/view`, {
         params: { doctorid: userid },
       });
 
@@ -58,7 +59,7 @@ const Doctor = () => {
     try {
       // Send a request to the server to add the new slot
       console.log('New slot sent:', newSlot);
-      await axios.post('http://localhost:8081/slots/add', newSlot);
+      await axios.post(`${API_BASE_URL}/slots/add`, newSlot);
       // Refresh the list of slots after adding a new one
       fetchDoctorSlots();
       // Clear the input fields

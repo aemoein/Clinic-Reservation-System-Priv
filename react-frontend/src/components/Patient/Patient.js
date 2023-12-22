@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Patient.module.css';
+const API_BASE_URL = process.env.REACT_APP_API_PORT;
 
 const Patient = () => {
   const { username, userid } = useParams();
@@ -16,7 +17,7 @@ const Patient = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/doctors');
+      const response = await axios.get(`${API_BASE_URL}/doctors`);
       if (Array.isArray(response.data)) {
         setDoctors(response.data);
         console.log('doctors recieved', response.data)
@@ -30,7 +31,7 @@ const Patient = () => {
 
   const fetchPatientAppointments = async () => {
     try {
-      const response = await axios.get('http://localhost:8081/appointments/view', {
+      const response = await axios.get(`${API_BASE_URL}/appointments/view`, {
         params: { patientid: userid },
       });
 
@@ -65,7 +66,7 @@ const Patient = () => {
   const handleCancel = async (appointmentId) => {
     try {
       console.log(`Cancel appointment with ID ${appointmentId}`);
-      await axios.put(`http://localhost:8081/appointments/cancel?appointmentid=${appointmentId}`, {
+      await axios.put(`${API_BASE_URL}/appointments/cancel?appointmentid=${appointmentId}`, {
         patient_id: Number(userid),
       });
 
@@ -80,7 +81,7 @@ const Patient = () => {
   const fetchDoctorSlots = async (doctorId) => {
     try {
        console.log('Fetching doctor slots for:', selectedDoctor);
-      const response = await axios.get('http://localhost:8081/slots/view/empty', {
+      const response = await axios.get(`${API_BASE_URL}/slots/view/empty`, {
         params: { doctorid: doctorId },
       });
 
@@ -109,7 +110,7 @@ const Patient = () => {
     try {
         const appointmentIdInt = parseInt(selectedSlot, 10);
 
-        await axios.post('http://localhost:8081/appointments/reserve', {
+        await axios.post(`${API_BASE_URL}/appointments/reserve`, {
             appointment_id: appointmentIdInt,
             patient_id: Number(userid),
         });
@@ -131,7 +132,7 @@ const Patient = () => {
         old_appointment_id: appointmentToEdit,
       });  
 
-      await axios.post('http://localhost:8081/appointments/update', {
+      await axios.post(`${API_BASE_URL}/appointments/update`, {
           appointment_id: appointmentIdInt,
           old_appointment_id: appointmentToEdit,
       });
