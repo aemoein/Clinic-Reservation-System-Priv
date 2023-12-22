@@ -2,7 +2,7 @@ FROM golang:1.21
 
 WORKDIR /app
 
-COPY go.mod go.sum ./golang-backend
+COPY go.mod go.sum ./golang-backend/
 
 RUN go mod download
 
