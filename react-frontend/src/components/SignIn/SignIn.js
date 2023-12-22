@@ -13,7 +13,7 @@ const SignIn = () => {
     try {
       console.log('Email and password being sent:', { email, password });
   
-      const response = await axios.post('http://localhost:8081/signin', { email, password });
+      const response = await axios.post('https://golang-backend-ahmed-sami-dev.apps.sandbox-m4.g2pi.p1.openshiftapps.com/signin', { email, password });
   
       console.log('Response data:', response.data);
 
