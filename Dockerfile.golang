@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY ./golang-backend .
 
-ENV DB_HOST="dbcontainer"
+ENV DB_HOST="mysql-db"
 ENV PORT="3306"
 ENV USER="root"
 ENV PASSWORD="Ah123456789Ah"
