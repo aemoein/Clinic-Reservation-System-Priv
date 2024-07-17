@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	rabbitMQURL   = "amqp://guest:guest@rabbitmqcontainer:5672/"
+	rabbitMQURL   = "https://rabbitmq-ahmed-sami-dev.apps.sandbox-m4.g2pi.p1.openshiftapps.com:5672/"
 	exchangeName  = ""
 	routingKey    = "clinic_reservation"
 	consumerQueue = "clinic_reservation"
