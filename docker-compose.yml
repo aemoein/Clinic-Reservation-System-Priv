@@ -7,7 +7,7 @@ services:
       MYSQL_DATABASE: clinicDB2
       MYSQL_ROOT_PASSWORD: Ah123456789Ah
     ports:
-      - "3307:3306"
+      - "3308:3306"  # Exposing MySQL on port 3308 for host access
 
   golang-backend:
     build:
@@ -15,10 +15,11 @@ services:
       dockerfile: Dockerfile.golang
     environment:
       DB_HOST: "mysql-database"
-      PORT: "3307"
+      PORT: "3306"  # Internal MySQL port
       USER: "root"
       PASSWORD: "Ah123456789Ah"
       DB_NAME: "clinicDB2"
+      START_DELAY: "10"  # Delay in seconds
     ports:
       - "8081:8081"
     depends_on:
