@@ -4,6 +4,13 @@ WORKDIR /app
 
 COPY ./golang-backend .
 
+ENV DB_HOST="mysql-db"
+ENV PORT="3306"
+ENV USER="root"
+ENV PASSWORD="Ah123456789Ah"
+ENV DB_NAME="clinicDB2"
+
+RUN go build -o /bin .
 RUN go mod download
 
 COPY . .
