@@ -2,7 +2,7 @@ FROM golang:1.21
 
 WORKDIR /app
 
-COPY ./golang-backend .
+COPY go.mod go.sum ./golang-backend/
 
 ENV DB_HOST="mysql-db"
 ENV PORT="3306"
