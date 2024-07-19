@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from './Signup.module.css'
-const API_BASE_URL = process.env.REACT_APP_API_PORT;
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -23,7 +22,7 @@ const SignUp = () => {
     });
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/signup`, {
+      const response = await axios.post('https://golang-backend2-ahmed-sami-dev.apps.sandbox-m4.g2pi.p1.openshiftapps.com/signup', {
         username,
         email,
         password,
