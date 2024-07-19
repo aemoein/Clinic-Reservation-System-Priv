@@ -22,7 +22,7 @@ const SignUp = () => {
     });
 
     try {
-      const response = await axios.post('https://golang-backend2-ahmed-sami-dev.apps.sandbox-m4.g2pi.p1.openshiftapps.com/signup', {
+      const response = await axios.post('http://localhost:8081/signup', {
         username,
         email,
         password,
