@@ -1,0 +1,15 @@
+# Use the official MySQL base image
+FROM mysql
+
+# Environment variables for MySQL
+ENV MYSQL_ROOT_PASSWORD=12345
+ENV MYSQL_DATABASE=CRS
+
+# Copy SQL scripts to initialize the database
+COPY init.sql /docker-entrypoint-initdb.d/
+
+# Expose port 3306 to the outside world
+EXPOSE 3306
+
+# Command to run when the container starts
+CMD ["mysqld"]
